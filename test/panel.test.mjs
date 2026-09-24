@@ -145,9 +145,9 @@ test('pasar rechaza excluidos, ajenos, repetidos y notas fuera de rango', async 
   const { sheets, ops } = escenario();
   const r = await ops.pasar({
     id_examen: 'EX-002',
-    notas: [{ carnet: 'C4', nota: 30 }, { carnet: 'C9', nota: 30 }, { carnet: 'C1', nota: 46 }, { carnet: 'C1', nota: '30' }]
+    notas: [{ carnet: 'C4', nota: 30 }, { carnet: 'C9', nota: 30 }, { carnet: 'C1', nota: 46 }, { carnet: 'C1', nota: 1 }, { carnet: 'C1', nota: 30.5 }, { carnet: 'C1', nota: '30' }]
   });
-  assert.deepEqual(r.resultados.map((x) => x.estado), ['rechazada', 'rechazada', 'rechazada', 'rechazada']);
+  assert.deepEqual(r.resultados.map((x) => x.estado), Array(6).fill('rechazada'));
   assert.equal(sheets.escrituras.length, 0);
 });
 

@@ -3,6 +3,7 @@
 
 export const COLUMNAS_SABER = ['I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'];
 const PUNTAJE_TOTAL = 45;
+const NOTA_MINIMA = 2;
 const HOJA_FILIACION = 'Filiación';
 const HOJA_TRIMESTRE = '3er Trimestre';
 const NIVELES = { primero: 1, segundo: 2, tercero: 3, cuarto: 4, quinto: 5, sexto: 6 };
@@ -227,8 +228,8 @@ export function crearOperaciones({ sheets, almacen, env, azar, ahora = Date.now 
         resultados.push(r);
         const rechazar = (motivo) => Object.assign(r, { estado: 'rechazada', motivo });
         if (!carnet) { rechazar('Falta el carnet'); continue; }
-        if (typeof nota !== 'number' || !Number.isFinite(nota) || nota < 0 || nota > PUNTAJE_TOTAL) {
-          rechazar(`La nota debe ser un número entre 0 y ${PUNTAJE_TOTAL}`); continue;
+        if (!Number.isInteger(nota) || nota < NOTA_MINIMA || nota > PUNTAJE_TOTAL) {
+          rechazar(`La nota debe ser un número entero entre ${NOTA_MINIMA} y ${PUNTAJE_TOTAL}`); continue;
         }
         if (vistos.has(carnet)) { rechazar('Carnet repetido en este envío'); continue; }
         vistos.add(carnet);

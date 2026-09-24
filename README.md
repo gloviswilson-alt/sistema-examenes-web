@@ -40,7 +40,7 @@ Respuesta: `{ "ok": true, ... }` o `{ "ok": false, "error": "..." }`.
 | `guardar` | `fecha, nivel, paralelos[], tema, duracion, columna_registro, preguntas[{codigo, puntaje}], excluidos[]?` | `id_examen`, `asignacion` (carnet → forma, al azar) |
 | `cambiar` | `id_examen`, `columna_registro?`, `excluidos[]?` | lo cambiado |
 | `notas` | `nivel`, `paralelo` | `columnas` I–R: encabezado, cuántas notas tiene y qué exámenes la usan |
-| `pasar` | `id_examen`, `notas[{carnet, nota}]` | `escritas` y `resultados` por alumno (`escrita`, `ocupada`, `rechazada`, `no escrita`) |
+| `pasar` | `id_examen`, `notas[{carnet, nota}]` (nota entera de 2 a 45) | `escritas` y `resultados` por alumno (`escrita`, `ocupada`, `rechazada`, `no escrita`) |
 | `ajuste` | `trimestre?`, `profesor?` (sin datos solo lee) | ajustes guardados |
 
 En la hoja Examenes, `paralelos` y `excluidos` se guardan separados por comas;

@@ -2,6 +2,6 @@
 // Un ID solo no da acceso: cada hoja está compartida únicamente con la cuenta de servicio.
 // Los registros apuntan primero a COPIAS; el real se pone recién cuando la copia funcione.
 export const HOJAS = {
-  sistema: '',
+  sistema: '1mG2lSPcX-rEzRoo8Bj5GwuDbkw3F47ymY64ugIK1Vz0', // documento_del_sistema
   registros: { '6A': '', '6B': '', '2A': '', '2B': '' }
 };

@@ -4,6 +4,7 @@ import { createHash, randomInt, timingSafeEqual } from 'node:crypto';
 import { crearSheets } from './sheets.mjs';
 import { crearAlmacen } from './almacen.mjs';
 import { crearOperaciones, ErrorPanel } from './operaciones.mjs';
+import { HOJAS } from './hojas.mjs';
 
 const OPERACIONES = ['estado', 'banco', 'guardar', 'cambiar', 'notas', 'pasar', 'ajuste'];
 
@@ -33,7 +34,7 @@ export default async (req) => {
     operaciones ??= crearOperaciones({
       sheets: crearSheets(process.env.GOOGLE_SERVICE_ACCOUNT),
       almacen: crearAlmacen(),
-      env: process.env,
+      hojas: HOJAS,
       azar: randomInt
     });
     return responder(200, { ok: true, ...(await operaciones[operacion](datos)) });

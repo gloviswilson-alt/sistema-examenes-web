@@ -1,9 +1,15 @@
 // Las 7 operaciones del panel. Reciben sus dependencias (Sheets, almacén,
-// variables de entorno, azar) para poder probarse sin conexión.
+// IDs de las hojas, azar) para poder probarse sin conexión.
 
 export const COLUMNAS_SABER = ['I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'];
 const PUNTAJE_TOTAL = 45;
 const NOTA_MINIMA = 2;
+const FORMAS = ['A', 'B', 'C', 'D'];
+// Signo final del enunciado según la respuesta correcta (clave fija del trimestre).
+const SIGNOS = { A: '.', B: ',', C: ':', D: '' };
+const ESPACIOS = ['sin', 'pequeño', 'grande'];
+const PREGUNTAS_MIN = 3;
+const PREGUNTAS_MAX = 10;
 const HOJA_FILIACION = 'Filiación';
 const HOJA_TRIMESTRE = '3er Trimestre';
 const NIVELES = { primero: 1, segundo: 2, tercero: 3, cuarto: 4, quinto: 5, sexto: 6 };
@@ -47,19 +53,35 @@ function jsonCelda(v, porDefecto) {
   try { return texto(v) ? JSON.parse(v) : porDefecto; } catch { falla('Hay una celda con formato inválido en Examenes'); }
 }
 
+// Promedio de las celdas numéricas (las fórmulas y textos no cuentan), con un decimal.
+function promedio(valores) {
+  const nums = valores.map(texto).filter((v) => v !== '' && !v.startsWith('=')).map(Number).filter(Number.isFinite);
+  return nums.length ? Math.round((nums.reduce((s, n) => s + n, 0) / nums.length) * 10) / 10 : null;
+}
+
 function fechaBolivia(ms) {
   // Bolivia: UTC-4, sin horario de verano.
   return new Date(ms - 4 * 3600_000).toISOString().slice(0, 16).replace('T', ' ');
 }
 
-export function crearOperaciones({ sheets, almacen, env, azar, ahora = Date.now }) {
-  const SISTEMA = env.SISTEMA_SHEET_ID;
+// Reparte A, B, C y D en partes iguales y las baraja (Fisher-Yates).
+function barajarFormas(n, azar) {
+  const lista = Array.from({ length: n }, (_, i) => FORMAS[i % FORMAS.length]);
+  for (let i = n - 1; i > 0; i--) {
+    const j = azar(i + 1);
+    [lista[i], lista[j]] = [lista[j], lista[i]];
+  }
+  return lista;
+}
+
+export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.now }) {
+  const SISTEMA = hojas.sistema;
 
   const leerTabla = async (hoja) => tabla(await sheets.leer(SISTEMA, `'${hoja}'`));
 
   function registroDe(curso) {
-    const id = env[`REGISTRO_${curso}`];
-    if (!id) falla(`No hay registro configurado para ${curso} (variable REGISTRO_${curso})`);
+    const id = hojas.registros[curso];
+    if (!id) falla(`No hay registro configurado para ${curso}`);
     return id;
   }
 
@@ -106,43 +128,48 @@ export function crearOperaciones({ sheets, almacen, env, azar, ahora = Date.now 
       for (const f of del_nivel) {
         if (texto(tema) && !igual(f.tema, tema)) continue;
         const cod = texto(f.codigo);
+        const clave = texto(f.clave).toUpperCase();
+        if (!(clave in SIGNOS)) falla(`Clave inválida en ${cod} forma ${f.forma}: "${f.clave}"`);
         if (!preguntas.has(cod)) {
           preguntas.set(cod, { codigo: cod, tema: texto(f.tema), dificultad: f.dificultad, tipo: f.tipo, formas: {} });
         }
         preguntas.get(cod).formas[texto(f.forma).toUpperCase()] = {
-          enunciado: f.enunciado,
+          enunciado: texto(f.enunciado) + SIGNOS[clave],
           opciones: [f.opcion_a, f.opcion_b, f.opcion_c, f.opcion_d],
-          clave: f.clave,
+          clave,
           solucion: f.solucion
         };
       }
-      return { temas, preguntas: [...preguntas.values()] };
+      // Una familia con sus 4 formas idénticas no sirve contra la copia: se oculta.
+      const utiles = [...preguntas.values()].filter((p) =>
+        new Set(Object.values(p.formas).map((f) => JSON.stringify([f.enunciado, f.opciones]))).size > 1);
+      return { temas, preguntas: utiles };
     },
 
     async guardar(d) {
-      for (const campo of ['fecha', 'nivel', 'tema', 'duracion']) {
+      for (const campo of ['fecha', 'nivel', 'tema']) {
         if (!texto(d[campo])) falla(`Falta ${campo}`);
       }
       const paralelos = (d.paralelos || []).map((p) => texto(p).toUpperCase()).filter(Boolean);
       if (!paralelos.length) falla('Falta al menos un paralelo');
       const columna = validarColumna(d.columna_registro);
       const preguntas = d.preguntas || [];
-      if (!preguntas.length) falla('El examen no tiene preguntas');
+      if (preguntas.length < PREGUNTAS_MIN || preguntas.length > PREGUNTAS_MAX) {
+        falla(`El examen debe tener entre ${PREGUNTAS_MIN} y ${PREGUNTAS_MAX} preguntas`);
+      }
+      if (preguntas.some((p) => !ESPACIOS.includes(texto(p.espacio)))) falla(`El espacio de cada pregunta debe ser: ${ESPACIOS.join(', ')}`);
       const codigos = preguntas.map((p) => texto(p.codigo));
       if (new Set(codigos).size !== codigos.length) falla('Hay preguntas repetidas');
       if (preguntas.some((p) => !(Number(p.puntaje) > 0))) falla('Cada pregunta necesita un puntaje mayor que 0');
       const suma = preguntas.reduce((s, p) => s + Number(p.puntaje), 0);
       if (Math.abs(suma - PUNTAJE_TOTAL) > 1e-9) falla(`Los puntajes suman ${suma}, deben sumar ${PUNTAJE_TOTAL}`);
 
-      // Formas disponibles en TODAS las preguntas elegidas.
       const banco = (await leerTabla('Banco')).filas.filter((f) => igual(f.nivel, d.nivel));
-      let formas = null;
       for (const cod of codigos) {
         const deEsta = new Set(banco.filter((f) => igual(f.codigo, cod)).map((f) => texto(f.forma).toUpperCase()));
         if (!deEsta.size) falla(`La pregunta ${cod} no está en el banco de ${d.nivel}`);
-        formas = formas ? formas.filter((x) => deEsta.has(x)) : [...deEsta].sort();
+        if (FORMAS.some((x) => !deEsta.has(x))) falla(`La pregunta ${cod} no tiene sus 4 formas en el banco`);
       }
-      if (!formas.length) falla('Las preguntas elegidas no comparten ninguna forma');
 
       const alumnos = (await leerTabla('Alumnos')).filas
         .filter((a) => igual(a.nivel, d.nivel) && paralelos.includes(texto(a.paralelo).toUpperCase()));
@@ -154,16 +181,22 @@ export function crearOperaciones({ sheets, almacen, env, azar, ahora = Date.now 
       const ajenos = excluidos.filter((c) => !carnets.has(c));
       if (ajenos.length) falla(`Excluidos que no son del curso: ${ajenos.join(', ')}`);
 
+      // Formas parejas y barajadas dentro de la lista de cada paralelo.
       const asignacion = {};
-      for (const c of carnets) asignacion[c] = formas[azar(formas.length)];
+      for (const p of paralelos) {
+        const lista = alumnos.filter((a) => texto(a.paralelo).toUpperCase() === p)
+          .sort((a, b) => Number(a.numero) - Number(b.numero));
+        const formas = barajarFormas(lista.length, azar);
+        lista.forEach((a, i) => { asignacion[normCarnet(a.carnet)] = formas[i]; });
+      }
 
       const tEx = await leerTabla('Examenes');
       const ultimoNum = Math.max(0, ...tEx.filas.map((f) => Number(texto(f.id_examen).match(/\d+/)?.[0]) || 0));
-      const id = `EX-${String(ultimoNum + 1).padStart(3, '0')}`;
+      const id = `EX${String(ultimoNum + 1).padStart(3, '0')}`; // sin guion: va dentro del QR
       const fila = {
         id_examen: id, creado: fechaBolivia(ahora()), fecha: texto(d.fecha), nivel: texto(d.nivel),
         paralelos: paralelos.join(','), tema: texto(d.tema),
-        preguntas: JSON.stringify(preguntas.map((p) => ({ codigo: texto(p.codigo), puntaje: Number(p.puntaje) }))),
+        preguntas: JSON.stringify(preguntas.map((p) => ({ codigo: texto(p.codigo), puntaje: Number(p.puntaje), espacio: texto(p.espacio) }))),
         duracion: texto(d.duracion), columna_registro: columna, asignacion: JSON.stringify(asignacion),
         excluidos: excluidos.join(','), notas_pasadas: 0, estado: 'creado'
       };
@@ -205,7 +238,9 @@ export function crearOperaciones({ sheets, almacen, env, azar, ahora = Date.now 
           letra,
           encabezado: texto(encabezados[i]),
           notas: celdas.filter((f) => texto(f[i]) !== '').length,
-          examenes: examenes.filter((e) => igual(e.columna_registro, letra)).map((e) => ({ id_examen: e.id_examen, tema: e.tema }))
+          promedio: promedio(celdas.map((f) => f[i])),
+          examenes: examenes.filter((e) => igual(e.columna_registro, letra))
+            .map((e) => ({ id_examen: e.id_examen, tema: e.tema, fecha: e.fecha }))
         }))
       };
     },

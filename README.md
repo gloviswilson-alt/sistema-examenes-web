@@ -13,7 +13,8 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
 - `public/estilos.css`, `public/fuentes/`: fuentes y estilos base.
 - `public/vendor/`: React y `dc-runtime.js`, el motor que dibuja las pantallas. No se editan a mano.
 - `netlify/functions/panel/`: `panel.mjs` (entrada y contraseña), `operaciones.mjs` (las 7 operaciones),
-  `sheets.mjs` (Google Sheets), `almacen.mjs` (ajustes y bloqueos en Netlify Blobs).
+  `sheets.mjs` (Google Sheets), `almacen.mjs` (ajustes y bloqueos en Netlify Blobs),
+  `hojas.mjs` (IDs del documento del sistema y de los 4 registros).
 - `test/`: pruebas con hojas simuladas (`npm test`).
 
 ## Variables de entorno (Netlify → Project configuration → Environment variables)
@@ -22,10 +23,9 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
 |---|---|
 | `PANEL_CLAVE` | Contraseña del panel |
 | `GOOGLE_SERVICE_ACCOUNT` | JSON completo de la clave de la cuenta de servicio |
-| `SISTEMA_SHEET_ID` | ID del documento del sistema (Banco, Alumnos, Examenes) |
-| `REGISTRO_6A`, `REGISTRO_6B`, `REGISTRO_2A`, `REGISTRO_2B` | ID del registro de cada curso. **Poner primero el ID de una COPIA.** |
 
-El ID es la parte de la URL entre `/d/` y `/edit`. Si falta un `REGISTRO_*`, ese curso no se toca.
+Los IDs de las hojas están en `hojas.mjs` (la parte de la URL entre `/d/` y `/edit`).
+Los registros apuntan primero a una **COPIA**; un curso sin ID no se toca.
 
 ## API
 
@@ -36,12 +36,18 @@ Respuesta: `{ "ok": true, ... }` o `{ "ok": false, "error": "..." }`.
 | operacion | Datos | Devuelve |
 |---|---|---|
 | `estado` | — | `ultimo` (último examen, con `notas_pasadas`) |
-| `banco` | `nivel`, `tema?` | `temas`, `preguntas` (agrupadas por `codigo`, con sus `formas`) |
-| `guardar` | `fecha, nivel, paralelos[], tema, duracion, columna_registro, preguntas[{codigo, puntaje}], excluidos[]?` | `id_examen`, `asignacion` (carnet → forma, al azar) |
+| `banco` | `nivel`, `tema?` | `temas`, `preguntas` (por `codigo`, con sus `formas`; el enunciado ya trae el signo de la clave; se ocultan las familias con 4 formas iguales) |
+| `guardar` | `fecha, nivel, paralelos[], tema, duracion?, columna_registro, preguntas[{codigo, puntaje, espacio}], excluidos[]?` | `id_examen` (`EX001`…), `asignacion` (carnet → forma) |
 | `cambiar` | `id_examen`, `columna_registro?`, `excluidos[]?` | lo cambiado |
-| `notas` | `nivel`, `paralelo` | `columnas` I–R: encabezado, cuántas notas tiene y qué exámenes la usan |
+| `notas` | `nivel`, `paralelo` | `columnas` I–R: encabezado, cuántas notas y su promedio, y qué exámenes la usan (con fecha) |
 | `pasar` | `id_examen`, `notas[{carnet, nota}]` (nota entera de 2 a 45) | `escritas` y `resultados` por alumno (`escrita`, `ocupada`, `rechazada`, `no escrita`) |
 | `ajuste` | `trimestre?`, `profesor?` (sin datos solo lee) | ajustes guardados |
+
+Reglas de `guardar`: de 3 a 10 preguntas, puntajes que suman 45, `espacio` = `sin`, `pequeño`
+o `grande`, y cada familia con sus 4 formas. Las formas se reparten en partes iguales y se
+barajan dentro de la lista de cada paralelo.
+
+Clave en el signo final del enunciado: A punto, B coma, C dos puntos, D sin signo.
 
 En la hoja Examenes, `paralelos` y `excluidos` se guardan separados por comas;
 `preguntas` y `asignacion`, como JSON.

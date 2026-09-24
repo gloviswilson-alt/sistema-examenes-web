@@ -1,0 +1,11 @@
+{
+  "name": "sistema-examenes-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@netlify/blobs": ">=8.0.0"
+  }
+}

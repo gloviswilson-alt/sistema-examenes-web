@@ -12,6 +12,7 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
 - `public/index.html`: pantallas del panel (dentro de `<x-dc>`) y su lógica (script `text/x-dc` al final).
 - `public/estilos.css`, `public/fuentes/`: fuentes y estilos base.
 - `public/vendor/`: React y `dc-runtime.js`, el motor que dibuja las pantallas. No se editan a mano.
+- `public/prueba.html`: prueba de conexión (solo lectura) del documento del sistema y los 4 registros.
 - `netlify/functions/panel/`: `panel.mjs` (entrada y contraseña), `operaciones.mjs` (las 7 operaciones),
   `sheets.mjs` (Google Sheets), `almacen.mjs` (ajustes y bloqueos en Netlify Blobs),
   `hojas.mjs` (IDs del documento del sistema y de los 4 registros).

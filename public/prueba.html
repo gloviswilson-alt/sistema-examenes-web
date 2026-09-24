@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prueba de conexión</title>
+<link rel="stylesheet" href="estilos.css">
+<style>
+  body { font-family: Jost, system-ui, sans-serif; color: #22302C; background: #F5F1EA; margin: 0; }
+  main { max-width: 560px; margin: 0 auto; padding: 32px 16px; }
+  h1 { font-family: Prata, serif; font-weight: 400; margin: 0 0 6px; }
+  p { color: #5B6B64; margin: 0 0 20px; }
+  form { display: flex; gap: 8px; margin-bottom: 20px; }
+  input { flex: 1; min-width: 0; font: inherit; padding: 10px 12px; border: 1px solid #CFC8BA; border-radius: 10px; background: #fff; }
+  button { font: inherit; padding: 10px 16px; border: 0; border-radius: 10px; background: #1D4B43; color: #fff; cursor: pointer; }
+  button:disabled { opacity: .5; }
+  ol { list-style: none; padding: 0; margin: 0; }
+  li { background: #FBF9F5; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+  .ok { color: #1D4B43; } .mal { color: #A65543; } .det { font-size: 13px; color: #5B6B64; overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Prueba de conexión</h1>
+  <p>Solo lee: comprueba el documento del sistema y las copias de los 4 registros. No escribe nada.</p>
+  <form id="f">
+    <input id="clave" type="password" placeholder="Contraseña del panel" autocomplete="current-password" required>
+    <button id="b">Probar</button>
+  </form>
+  <ol id="lista"></ol>
+</main>
+<script>
+const PASOS = [
+  ['Contraseña y documento del sistema (Examenes)', { operacion: 'estado' }, (r) => r.ultimo ? `Último examen: ${r.ultimo.id_examen}` : 'Conectado. La hoja Examenes está vacía.'],
+  ['Banco de Sexto', { operacion: 'banco', nivel: 'Sexto' }, (r) => `${r.preguntas.length} familias en ${r.temas.length} temas`],
+  ['Banco de Segundo', { operacion: 'banco', nivel: 'Segundo' }, (r) => `${r.preguntas.length} familias en ${r.temas.length} temas`],
+  ...['6A', '6B', '2A', '2B'].map((c) => [
+    `Registro de prueba ${c}`,
+    { operacion: 'notas', nivel: c[0] === '6' ? 'Sexto' : 'Segundo', paralelo: c[1] },
+    (r) => 'Columnas con notas: ' + (r.columnas.filter((x) => x.notas).map((x) => `${x.letra} (${x.notas})`).join(', ') || 'ninguna')
+  ])
+];
+
+document.getElementById('f').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const clave = document.getElementById('clave').value;
+  const lista = document.getElementById('lista');
+  const boton = document.getElementById('b');
+  boton.disabled = true;
+  lista.innerHTML = '';
+  for (const [nombre, datos, resumen] of PASOS) {
+    const li = document.createElement('li');
+    li.textContent = `… ${nombre}`;
+    lista.append(li);
+    let r;
+    try {
+      const res = await fetch('/.netlify/functions/panel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accion: 'panel', clave, ...datos })
+      });
+      r = await res.json().catch(() => ({ ok: false, error: `Respuesta no válida (${res.status})` }));
+    } catch (err) {
+      r = { ok: false, error: 'No se pudo llamar a la función: ' + err.message };
+    }
+    li.innerHTML = '';
+    const t = document.createElement('div');
+    t.className = r.ok ? 'ok' : 'mal';
+    t.textContent = (r.ok ? '✓ ' : '✗ ') + nombre;
+    const d = document.createElement('div');
+    d.className = 'det';
+    d.textContent = r.ok ? resumen(r) : r.error;
+    li.append(t, d);
+    if (!r.ok && nombre.startsWith('Contraseña')) break;
+  }
+  boton.disabled = false;
+});
+</script>
+</body>
+</html>

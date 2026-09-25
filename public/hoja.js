@@ -2,10 +2,9 @@
 // La impresión y el lector óptico usan estas mismas constantes: no se tocan por separado.
 (function () {
   // Milímetros desde la esquina superior izquierda del QR (geometría medida en papel).
-  // x0 y filas: centros de las burbujas; paso: distancia entre centros. RB: radios de lectura.
+  // x0 y filas: centros de las burbujas; paso: distancia entre centros; RB.aro: radio del círculo impreso.
   const G = { lado: 15.08, x0: 18.73, paso: 5.93, filas: [5.82, 11.77], radioLectura: 1.2 };
   const RB = { aro: 2.25, fuera: 3.1 };
-  const DIAMETRO_BURBUJA = 5.14; // círculo impreso, igual que en el diseño de la hoja
   const NOTA_MIN = 2, NOTA_MAX = 45, POR_FILA = 22;
 
   // Centro (mm, desde la esquina del QR) de la burbuja de una nota.
@@ -171,9 +170,9 @@ html, body { margin: 0; background: #fff }
 .pag:last-child { break-after: auto }
 .franja { position: relative; height: ${G.lado}mm; flex: none }
 .qr { position: absolute; left: 0; top: 0 }
-.uso { position: absolute; left: ${(G.x0 - DIAMETRO_BURBUJA / 2).toFixed(2)}mm; top: 0.3mm; font-size: 6px; letter-spacing: .22em; text-transform: uppercase; color: #98A099; white-space: nowrap }
-.bur { position: absolute; width: ${DIAMETRO_BURBUJA}mm; height: ${DIAMETRO_BURBUJA}mm; border: 0.26mm solid #5F6B64; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center; font-size: 10px; line-height: 1; color: #5F6B64; font-variant-numeric: tabular-nums }
+.uso { position: absolute; left: ${(G.x0 - RB.aro).toFixed(2)}mm; top: 0.3mm; font-size: 6px; letter-spacing: .22em; text-transform: uppercase; color: #98A099; white-space: nowrap }
+.bur { position: absolute; width: ${RB.aro * 2}mm; height: ${RB.aro * 2}mm; border: 0.26mm solid #5F6B64; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 9px; line-height: 1; color: #5F6B64; font-variant-numeric: tabular-nums }
 .nota { position: absolute; right: 0; top: 0; width: 31.75mm; height: 34.29mm; background: #F0EDE4; border-radius: 2px;
   display: flex; align-items: flex-end; justify-content: space-between; padding: 6px 9px }
 .nota b { font-size: 8.5px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: #17362F }
@@ -207,8 +206,7 @@ html, body { margin: 0; background: #fff }
     let h = '<div class="franja"><div class="qr">' + svgQR(qrTexto, G.lado) + '</div><span class="uso">Uso exclusivo del profesor</span>';
     for (let n = NOTA_MIN; n <= NOTA_MAX; n++) {
       const b = burbuja(n);
-      const r = DIAMETRO_BURBUJA / 2;
-      h += '<span class="bur" style="left:' + (b.x - r).toFixed(2) + "mm;top:" + (b.y - r).toFixed(2) + 'mm">' + n + "</span>";
+      h += '<span class="bur" style="left:' + (b.x - RB.aro).toFixed(2) + "mm;top:" + (b.y - RB.aro).toFixed(2) + 'mm">' + n + "</span>";
     }
     return h + '<div class="nota"><b>Nota</b><span>/45</span></div></div>';
   }
@@ -223,6 +221,17 @@ html, body { margin: 0; background: #fff }
     const nl = LINEAS[p.espacio] || 0;
     if (nl) h += '<div class="lineas">' + "<div></div>".repeat(nl) + "</div>";
     return h + "</div></div>";
+  }
+
+  // Si queda espacio libre al pie de la página, la última pregunta (si lleva espacio para
+  // resolver) recibe más líneas hasta llenarlo.
+  function completarLineas(doc, cuerpo) {
+    const lineas = cuerpo.lastElementChild && cuerpo.lastElementChild.querySelector(".lineas");
+    if (!lineas) return;
+    while (true) {
+      lineas.appendChild(doc.createElement("div"));
+      if (cuerpo.scrollHeight > cuerpo.clientHeight + 1) { lineas.lastElementChild.remove(); return; }
+    }
   }
 
   // Arma las páginas de todos los alumnos dentro de `doc` (el documento de un iframe).
@@ -252,7 +261,10 @@ html, body { margin: 0; background: #fff }
           dest.appendChild(bloque);
         }
       });
-      paginas.forEach((pg, i) => { pg.querySelector(".nro").textContent = "Pág. " + (i + 1) + " de " + paginas.length; });
+      paginas.forEach((pg, i) => {
+        pg.querySelector(".nro").textContent = "Pág. " + (i + 1) + " de " + paginas.length;
+        completarLineas(doc, pg.querySelector(".cuerpo"));
+      });
     }
   }
 
@@ -283,5 +295,5 @@ html, body { margin: 0; background: #fff }
     return doc.querySelectorAll(".pag").length;
   }
 
-  window.Hoja = { G, RB, DIAMETRO_BURBUJA, NOTA_MIN, NOTA_MAX, burbuja, textoQR, matrizQR, svgQR, armar, imprimir, CSS };
+  window.Hoja = { G, RB, NOTA_MIN, NOTA_MAX, burbuja, textoQR, matrizQR, svgQR, armar, imprimir, CSS };
 })();

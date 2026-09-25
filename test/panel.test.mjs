@@ -260,6 +260,9 @@ test('estado, notas (con fecha y promedio) y ajuste', async () => {
   const e = await ops.estado();
   assert.equal(e.ultimo.id_examen, 'EX002');
   assert.deepEqual(e.ultimo.paralelos, ['B']);
+  assert.deepEqual(e.examenes.map((x) => x.id_examen), ['EX002', 'EX001']);
+  assert.equal(e.ultimo.asignacion.C1, 'A');
+  assert.deepEqual(e.ultimo.excluidos, ['C4']);
 
   const n = await ops.notas({ nivel: 'Sexto', paralelo: 'B' });
   const k = n.columnas.find((c) => c.letra === 'K');

@@ -107,17 +107,17 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
   }
 
   return {
+    // Último examen para Inicio y la lista completa (la más nueva primero) para la pantalla Exámenes;
+    // cada examen trae lo necesario para volver a imprimirlo igual.
     async estado() {
       const { filas } = await leerTabla('Examenes');
-      const u = filas.at(-1);
-      if (!u) return { ultimo: null };
-      return {
-        ultimo: {
-          id_examen: u.id_examen, fecha: u.fecha, nivel: u.nivel, paralelos: listaComas(u.paralelos),
-          tema: u.tema, columna_registro: u.columna_registro, estado: u.estado,
-          notas_pasadas: Number(u.notas_pasadas) || 0
-        }
-      };
+      const examenes = filas.map((e) => ({
+        id_examen: e.id_examen, creado: e.creado, fecha: e.fecha, nivel: e.nivel, paralelos: listaComas(e.paralelos),
+        tema: e.tema, duracion: e.duracion, columna_registro: e.columna_registro, estado: e.estado,
+        notas_pasadas: Number(e.notas_pasadas) || 0,
+        preguntas: jsonCelda(e.preguntas, []), asignacion: jsonCelda(e.asignacion, {}), excluidos: listaComas(e.excluidos)
+      })).reverse();
+      return { ultimo: examenes[0] || null, examenes };
     },
 
     async banco({ nivel, tema }) {

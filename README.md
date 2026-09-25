@@ -5,7 +5,8 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
 ## Estado
 
 - **Panel** (`public/`): conectados la contraseña, Inicio, Ajustes, Crear examen (banco real, selector de
-  columnas y guardado) e impresión de las hojas. Exámenes, detalle y Notas por foto siguen con datos de ejemplo.
+  columnas y guardado), impresión de las hojas y la lista de Exámenes con "Imprimir de nuevo" (mismas
+  formas; se elige a quién). Notas por foto sigue con datos de ejemplo.
 - **Backend** (`netlify/functions/panel/`): función de Netlify que reemplaza al Apps Script.
 
 ## Archivos
@@ -39,7 +40,7 @@ Respuesta: `{ "ok": true, ... }` o `{ "ok": false, "error": "..." }`.
 
 | operacion | Datos | Devuelve |
 |---|---|---|
-| `estado` | — | `ultimo` (último examen, con `notas_pasadas`) |
+| `estado` | — | `ultimo` y `examenes` (todos, el más nuevo primero, con preguntas, asignación y excluidos para reimprimir) |
 | `banco` | `nivel`, `tema?` | `temas`, `preguntas` (por `codigo`, con sus `formas`; el enunciado ya trae el signo de la clave; se ocultan las familias con 4 formas iguales) |
 | `guardar` | `fecha, nivel, paralelos[], tema, duracion?, columna_registro, preguntas[{codigo, puntaje, espacio}], excluidos[]?` | `id_examen` (`EX001`…), `asignacion` (carnet → forma) |
 | `cambiar` | `id_examen`, `columna_registro?`, `excluidos[]?` | lo cambiado |

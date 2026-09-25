@@ -54,7 +54,7 @@
 
       </div>
 
-      <button sc-camel-on-click="{{ irDetalle }}" style="width:100%;text-align:left;border:0;background:#FBF9F5;border-radius:26px;padding:24px 26px;margin-top:16px;font:inherit;cursor:pointer;display:block" style-hover="background:#F7F3EB">
+      <button sc-camel-on-click="{{ irExamenes }}" style="width:100%;text-align:left;border:0;background:#FBF9F5;border-radius:26px;padding:24px 26px;margin-top:16px;font:inherit;cursor:pointer;display:block" style-hover="background:#F7F3EB">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px">
           <div>
             <div style="color:#C99B52;font-size:11px;text-transform:uppercase;letter-spacing:0.13em;font-weight:500">Último examen generado</div>
@@ -280,13 +280,26 @@
     <!-- IMPRIMIR -->
     <div style="display:{{ vImprimir }}">
       <div style="background:#1D4B43;color:#F1EDE3;border-radius:26px;padding:24px 24px 22px">
-        <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#C5D3C8;font-weight:500">Examen guardado</div>
+        <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#C5D3C8;font-weight:500">{{ impEtiqueta }}</div>
         <div style="font-family:Prata,Georgia,serif;font-size:30px;line-height:1.15;margin-top:6px">{{ impTitulo }}</div>
         <div style="font-size:13.5px;color:#C5D3C8;margin-top:4px">{{ impResumen }}</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
           <button sc-camel-on-click="{{ imprimirHojas }}" style="border:0;background:#C99B52;color:#3B2A0C;border-radius:16px;padding:12px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#BC8C43">{{ imprimirTexto }}</button>
           <button sc-camel-on-click="{{ irInicio }}" style="border:1.5px solid #3C6B61;background:transparent;color:#F1EDE3;border-radius:16px;padding:12px 18px;font:inherit;font-size:14px;cursor:pointer" style-hover="background:#153931">Volver al inicio</button>
         </div>
+      </div>
+      <div style="background:#FBF9F5;border-radius:22px;padding:18px 0 14px;margin-top:14px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:0 20px 11px">
+          <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:0.13em;font-weight:500;color:#9AA69F">A quién imprimir</div>
+          <button sc-camel-on-click="{{ impTodos }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:12px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer">{{ impTodosTexto }}</button>
+        </div>
+        <sc-for list="{{ impLista }}" as="a" hint-placeholder-count="8">
+          <button sc-camel-on-click="{{ a.toggle }}" style="width:100%;text-align:left;display:flex;align-items:center;gap:11px;padding:10px 20px;border:0;border-top:1px solid #E2DACB;background:transparent;font:inherit;cursor:pointer">
+            <span style="width:21px;height:21px;border-radius:7px;border:1.5px solid {{ a.marcoBorde }};background:{{ a.marcoFondo }};flex:none;display:flex;align-items:center;justify-content:center;color:#FBF9F5;font-size:12px;line-height:1">{{ a.tick }}</span>
+            <span style="font-size:13px;color:#9AA69F;min-width:22px;font-variant-numeric:tabular-nums">{{ a.n }}</span>
+            <span style="font-size:14.5px;color:{{ a.tinta }};text-decoration:{{ a.deco }}">{{ a.nombre }}</span>
+          </button>
+        </sc-for>
       </div>
       <div style="background:#FBF9F5;border-radius:22px;padding:18px 20px;margin-top:14px;font-size:13.5px;line-height:1.55;color:#22302C">
         <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:0.13em;font-weight:500;color:#A65543;margin-bottom:8px">Antes de imprimir</div>
@@ -324,67 +337,15 @@
             <sc-if value="{{ x.desplegado }}" hint-placeholder-val="{{ false }}">
               <div style="padding:2px 0 20px 59px">
                 <div style="display:flex;gap:30px;flex-wrap:wrap;padding-bottom:16px">
-                  <span><span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#9AA69F">Con nota</span><span style="display:block;font-family:Prata,serif;font-size:21px;color:#1D4B43;margin-top:3px">14<span style="font-size:13px;color:#9AA69F">/52</span></span></span>
-                  <span><span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#9AA69F">Promedio</span><span style="display:block;font-family:Prata,serif;font-size:21px;color:#1D4B43;margin-top:3px">38<span style="font-size:13px;color:#9AA69F">/45</span></span></span>
-                  <span><span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#9AA69F">Aprobaron</span><span style="display:block;font-family:Prata,serif;font-size:21px;color:#1D4B43;margin-top:3px">12<span style="font-size:13px;color:#9AA69F">/14</span></span></span>
+                  <span><span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#9AA69F">Alumnos</span><span style="display:block;font-family:Prata,serif;font-size:21px;color:#1D4B43;margin-top:3px">{{ x.alumnos }}</span></span>
+                  <span><span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#9AA69F">Notas pasadas</span><span style="display:block;font-family:Prata,serif;font-size:21px;color:#1D4B43;margin-top:3px">{{ x.pasadas }}</span></span>
+                  <span><span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#9AA69F">Columna</span><span style="display:block;font-family:Prata,serif;font-size:21px;color:#1D4B43;margin-top:3px">{{ x.columna }}</span></span>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
-                  <button sc-camel-on-click="{{ x.verTodo }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:13px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">Ver notas</button>
-                  <button sc-camel-on-click="{{ demo }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:13px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">Notas por foto</button>
-                  <button sc-camel-on-click="{{ demo }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:13px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">Pasar al registro</button>
+                  <button sc-camel-on-click="{{ x.reimprimir }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:13px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">{{ x.reimprimirTexto }}</button>
                 </div>
               </div>
             </sc-if>
-          </div>
-        </sc-for>
-      </div>
-    </div>
-
-    <!-- DETALLE -->
-    <div style="display:{{ vDetalle }}">
-      <button sc-camel-on-click="{{ irExamenes }}" style="border:0;background:transparent;color:#6E7B74;font:inherit;font-size:13.5px;cursor:pointer;padding:0 0 14px">← Volver a exámenes</button>
-      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap">
-        <h2 style="font-family:Prata,Georgia,serif;font-weight:400;font-size:26px;color:#1D4B43;margin:0">La parábola y la elipse</h2>
-        <span style="font-size:13px;color:#9AA69F">EX-012 · Sexto B · Impreso · 17/09/2026</span>
-      </div>
-
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:18px">
-        <div style="background:#FBF9F5;border-radius:20px;padding:18px"><div style="font-family:Prata,serif;font-size:27px;color:#1D4B43;line-height:1.1;font-variant-numeric:tabular-nums">14<span style="font-size:15px;color:#9AA69F">/52</span></div><div style="font-size:12px;color:#6E7B74;margin-top:5px">Con nota</div></div>
-        <div style="background:#FBF9F5;border-radius:20px;padding:18px"><div style="font-family:Prata,serif;font-size:27px;color:#1D4B43;line-height:1.1;font-variant-numeric:tabular-nums">38<span style="font-size:15px;color:#9AA69F">/45</span></div><div style="font-size:12px;color:#6E7B74;margin-top:5px">Promedio</div></div>
-        <div style="background:#FBF9F5;border-radius:20px;padding:18px"><div style="font-family:Prata,serif;font-size:27px;color:#1D4B43;line-height:1.1;font-variant-numeric:tabular-nums">12<span style="font-size:15px;color:#9AA69F">/14</span></div><div style="font-size:12px;color:#6E7B74;margin-top:5px">Aprobaron</div></div>
-      </div>
-
-      <div style="background:#FBF9F5;border-radius:24px;padding:20px 22px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
-        <div>
-          <div style="font-weight:500;font-size:15.5px">Notas</div>
-          <button sc-camel-on-click="{{ toggleColEdit }}" style="border:0;background:transparent;font:inherit;font-size:13px;color:#6E7B74;cursor:pointer;padding:2px 0;text-align:left;text-decoration:underline;text-decoration-color:#C99B52;text-underline-offset:4px">Irán a la columna {{ colSel }} del registro · cambiar</button>
-          <sc-if value="{{ colEdit }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:11px">
-              <sc-for list="{{ columnas }}" as="c" hint-placeholder-count="6">
-                <span style="position:relative;display:block">
-                  <button sc-camel-on-click="{{ c.set }}" sc-camel-on-mouse-enter="{{ c.entrar }}" sc-camel-on-mouse-leave="{{ c.salir }}" sc-camel-on-touch-start="{{ c.entrar }}" sc-camel-on-touch-end="{{ c.salir }}" style="width:42px;height:42px;border-radius:12px;border:1.5px solid {{ c.borde }};background:{{ c.fondo }};color:{{ c.tinta }};font-family:Prata,serif;font-size:16px;cursor:{{ c.cursor }}">{{ c.letra }}</button>
-                  <span style="display:{{ c.globo }};position:absolute;bottom:50px;left:50%;transform:translateX(-50%);background:#22302C;color:#fff;font-size:12px;line-height:1.4;padding:8px 11px;border-radius:10px;white-space:nowrap;z-index:30;box-shadow:0 8px 20px rgba(31,42,38,.22)">{{ c.globoTxt }}</span>
-                </span>
-              </sc-for>
-            </div>
-          </sc-if>
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button sc-camel-on-click="{{ demo }}" style="border:1.5px solid #E2DACB;background:#FBF9F5;border-radius:16px;padding:11px 18px;font:inherit;font-size:14px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">Notas a mano</button>
-          <button sc-camel-on-click="{{ demo }}" style="border:0;background:#C99B52;color:#3B2A0C;border-radius:16px;padding:11px 18px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#BC8C43">Pasar al registro</button>
-        </div>
-      </div>
-
-      <div style="background:#FBF9F5;border-radius:24px;padding:4px 22px 14px;margin-top:14px;overflow-x:auto">
-        <div style="display:grid;grid-template-columns:34px 1fr 90px 64px;gap:10px;padding:14px 0 10px;font-size:10.5px;text-transform:uppercase;letter-spacing:0.11em;font-weight:500;color:#9AA69F">
-          <span>N.º</span><span>Estudiante</span><span>Curso</span><span style="text-align:right">Nota</span>
-        </div>
-        <sc-for list="{{ notas }}" as="n" hint-placeholder-count="8">
-          <div style="display:grid;grid-template-columns:34px 1fr 90px 64px;gap:10px;padding:11px 0;border-top:1px solid #E2DACB;font-size:14.5px;align-items:baseline">
-            <span style="font-variant-numeric:tabular-nums;color:#9AA69F">{{ n.i }}</span>
-            <span>{{ n.nombre }}</span>
-            <span style="color:#6E7B74;font-size:13px">{{ n.curso }}</span>
-            <span style="text-align:right;font-variant-numeric:tabular-nums;font-weight:500;color:{{ n.color }};font-size:{{ n.tam }}">{{ n.valor }}</span>
           </div>
         </sc-for>
       </div>
@@ -502,17 +463,6 @@
 const CURSOS = ["Sexto A", "Sexto B", "Sexto A y B", "Segundo A", "Segundo B", "Segundo A y B"];
 const FILTROS = ["Segundo A", "Segundo B", "Sexto A", "Sexto B"];
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-const EXAMENES = [
-  { titulo: "La parábola y la elipse", meta: "EX-012 · 17/09/2026 · 20 preguntas · col. D", estado: "Impreso", nota: "14 de 26 con nota", tono: "abierto", vista: "detalle" },
-  { titulo: "Ecuaciones de la parábola", meta: "EX-011 · 10/09/2026 · 15 preguntas · col. C", estado: "En registro", nota: "26 de 26 · en registro", tono: "impreso", vista: "detalle" },
-  { titulo: "La hipérbola", meta: "EX-010 · 02/09/2026 · 12 preguntas · col. B", estado: "En registro", nota: "25 de 26 con nota", tono: "cerrado", vista: "detalle" }
-];
-const NOTAS = [
-  ["Arias Flores, Camila", "Sexto A", 42], ["Balcázar Medina, Rodrigo", "Sexto A", 38],
-  ["Callisaya Mamani, Andrea", "Sexto A", 21], ["Durán Vásquez, Luis", "Sexto A", 45],
-  ["Flores Rojas, Valeria", "Sexto A", null], ["Gutiérrez Paz, Marco", "Sexto A", 40],
-  ["Herbas Nina, Sofía", "Sexto B", null], ["Jiménez Torres, Pablo", "Sexto B", 33]
-];
 
 const LECTURA_DEMO = [
   { nombre: "Arias Flores, Camila", curso: "Sexto A", codigo: "6B-01-A", nota: 42, ok: true },
@@ -547,16 +497,16 @@ class Component extends DCLogic {
     fecha: hoyBolivia(), calAbierto: false,
     calMes: Number(hoyBolivia().slice(5, 7)) - 1, calAnio: Number(hoyBolivia().slice(0, 4)),
     // bancos: por nivel ({ temas, preguntas } o { error }); registros: por curso "6A" ({ columnas, alumnos } o { error })
-    bancos: {}, registros: {}, impresion: null, imprimiendo: false,
+    bancos: {}, registros: {}, impresion: null, impFuera: [], imprimiendo: false, examenes: [], preparando: null,
     tema: null, sel: [], hoja: [], nombre: "", guardando: false,
-    formasAbiertas: false, col: null, colHover: null, colEdit: false,
+    formasAbiertas: false, col: null, colHover: null,
     filtro: "Sexto A", foto: "varias", aviso: "", lectura: [], abierto: null,
     imprFuera: []
   };
 
   ir = (vista) => () => {
     this.setState({ vista, colHover: null, calAbierto: false });
-    if (vista === "crear" || vista === "detalle") this.asegurarDatos(this.state.curso);
+    if (vista === "crear") this.asegurarDatos(this.state.curso);
   };
 
   // Trae (una sola vez por sesión) el banco del nivel y el registro de cada paralelo del curso.
@@ -595,11 +545,11 @@ class Component extends DCLogic {
         id: r.id_examen, nombre: v.nombre, fecha: s.fecha, duracion: s.minutos ? s.minutos + " min" : "",
         nivel: nivelDe(s.curso), trimestre: s.ajustes.trimestre, profesor: s.ajustes.profesor, columna: v.col,
         asignacion: r.asignacion,
-        alumnos: cc.alumnos.filter((a) => s.imprFuera.indexOf(a.carnet) < 0),
+        alumnos: cc.alumnos,
         preguntas: s.hoja.map((h) => ({ puntaje: h.pts, espacio: h.esp, formas: B.preguntas.find((q) => q.codigo === h.codigo).formas }))
       };
       // Los registros se vuelven a leer para que el globo del selector muestre el examen nuevo.
-      this.setState({ impresion, hoja: [], sel: [], tema: null, nombre: "", col: null, imprFuera: [], registros: {}, vista: "imprimir" });
+      this.setState({ impresion, impFuera: s.imprFuera, hoja: [], sel: [], tema: null, nombre: "", col: null, imprFuera: [], registros: {}, vista: "imprimir" });
       this.cargar();
     } catch (e) {
       this.avisar(e.message);
@@ -633,7 +583,7 @@ class Component extends DCLogic {
     this.setState({ cargando: true });
     // Estado y ajustes se piden por separado: si uno falla, el otro igual se muestra.
     const [est, aj] = await Promise.allSettled([this.llamar("estado"), this.llamar("ajuste")]);
-    if (est.status === "fulfilled") this.setState({ ultimo: est.value.ultimo });
+    if (est.status === "fulfilled") this.setState({ ultimo: est.value.ultimo, examenes: est.value.examenes });
     if (aj.status === "fulfilled") {
       const ajustes = { ...AJUSTES_BASE, ...(aj.value.trimestre ? { trimestre: aj.value.trimestre } : {}), ...(aj.value.profesor ? { profesor: aj.value.profesor } : {}) };
       this.setState({ ajustes, ajTrimestre: ajustes.trimestre, ajProfesor: ajustes.profesor });
@@ -676,11 +626,46 @@ class Component extends DCLogic {
     }
   };
 
+  // Vuelve a armar la impresión de un examen guardado (misma forma para cada alumno).
+  reimprimir = async (ex) => {
+    if (this.state.preparando) return;
+    this.setState({ preparando: ex.id_examen });
+    try {
+      const [banco, ...regs] = await Promise.all([
+        this.llamar("banco", { nivel: ex.nivel }),
+        ...ex.paralelos.map((par) => this.llamar("notas", { nivel: ex.nivel, paralelo: par }))
+      ]);
+      const alumnos = regs.flatMap((r, i) => r.alumnos.map((a) => ({ ...a, par: ex.paralelos[i] })))
+        .filter((a) => a.carnet in ex.asignacion);
+      const preguntas = ex.preguntas.map((p) => {
+        const q = banco.preguntas.find((x) => x.codigo === p.codigo);
+        if (!q) throw new Error("La pregunta " + p.codigo + " ya no está en el banco.");
+        return { puntaje: p.puntaje, espacio: p.espacio, formas: q.formas };
+      });
+      this.setState({
+        impresion: {
+          id: ex.id_examen, nombre: ex.tema, fecha: ex.fecha, duracion: ex.duracion, nivel: ex.nivel,
+          trimestre: this.state.ajustes.trimestre, profesor: this.state.ajustes.profesor, columna: ex.columna_registro,
+          asignacion: ex.asignacion, alumnos, preguntas, reimpresion: true
+        },
+        // Al reimprimir (hoja arruinada, alumno que rinde otro día) se empieza sin nadie marcado.
+        impFuera: alumnos.map((a) => a.carnet), vista: "imprimir"
+      });
+    } catch (e) {
+      this.avisar(e.message);
+    } finally {
+      this.setState({ preparando: null });
+    }
+  };
+
   imprimirHojas = async () => {
     if (this.state.imprimiendo) return;
     this.setState({ imprimiendo: true });
     try {
-      await window.Hoja.imprimir(this.state.impresion);
+      const imp = this.state.impresion;
+      const alumnos = imp.alumnos.filter((a) => this.state.impFuera.indexOf(a.carnet) < 0);
+      if (!alumnos.length) return this.avisar("Marca al menos un alumno.");
+      await window.Hoja.imprimir({ ...imp, alumnos });
     } catch (e) {
       this.avisar("No se pudo preparar la impresión: " + e.message);
     } finally {
@@ -835,16 +820,31 @@ class Component extends DCLogic {
 
       vImprimir: v("imprimir"),
       impTitulo: s.impresion ? s.impresion.id + " · " + s.impresion.nombre : "",
-      impResumen: s.impresion ? s.impresion.alumnos.length + " alumnos · " + s.impresion.preguntas.length + " preguntas · columna " + s.impresion.columna : "",
+      impEtiqueta: s.impresion && s.impresion.reimpresion ? "Imprimir de nuevo" : "Examen guardado",
+      impResumen: s.impresion
+        ? (s.impresion.alumnos.length - s.impFuera.length) + " de " + s.impresion.alumnos.length + " alumnos · " + s.impresion.preguntas.length + " preguntas · columna " + s.impresion.columna
+        : "",
+      impLista: (s.impresion ? s.impresion.alumnos : []).map((a) => {
+        const fuera = s.impFuera.indexOf(a.carnet) >= 0;
+        return {
+          nombre: a.nombre, n: (s.impresion.alumnos.some((x) => x.par !== a.par) ? a.par + " " : "") + a.numero,
+          tinta: fuera ? "#9AA69F" : "#22302C", deco: fuera ? "line-through" : "none",
+          marcoFondo: fuera ? "transparent" : "#1D4B43", marcoBorde: fuera ? "#E2DACB" : "#1D4B43", tick: fuera ? "" : "✓",
+          toggle: () => this.setState((st) => ({
+            impFuera: st.impFuera.indexOf(a.carnet) >= 0 ? st.impFuera.filter((x) => x !== a.carnet) : st.impFuera.concat([a.carnet])
+          }))
+        };
+      }),
+      impTodosTexto: s.impFuera.length ? "Marcar todos" : "Desmarcar todos",
+      impTodos: () => this.setState({ impFuera: s.impFuera.length ? [] : s.impresion.alumnos.map((a) => a.carnet) }),
       imprimirHojas: this.imprimirHojas,
       imprimirTexto: s.imprimiendo ? "Preparando…" : "Imprimir hojas",
 
       vInicio: v("inicio"), vCrear: v("crear"), vExamenes: v("examenes"),
-      vDetalle: v("detalle"), vFotos: v("fotos"), vAjustes: v("ajustes"),
+ vFotos: v("fotos"), vAjustes: v("ajustes"),
       navInicio: nav("inicio"), navCrear: nav("crear"), navExamenes: nav("examenes"), navFotos: nav("fotos"),
       irInicio: this.ir("inicio"), irCrear: this.ir("crear"), irExamenes: this.ir("examenes"),
-      irDetalle: this.ir("detalle"), irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
-      demo: () => this.avisar("Demo: acción deshabilitada."),
+irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
       aviso: s.aviso,
 
       cursos: CURSOS.map((nombre) => ({
@@ -968,7 +968,7 @@ class Component extends DCLogic {
             borde: on ? "#1D4B43" : "transparent",
             globo: hov && !c.libre ? "block" : "none",
             globoTxt: c.libre ? "" : c.globoTxt,
-            set: () => (c.libre ? this.setState({ col: c.letra, colEdit: false }) : null),
+            set: () => (c.libre ? this.setState({ col: c.letra }) : null),
             entrar: () => (c.libre ? null : this.setState({ colHover: c.letra })),
             salir: () => this.setState({ colHover: null })
           };
@@ -977,9 +977,6 @@ class Component extends DCLogic {
       colDetalle: cc.error ? "No se pudo leer el registro: " + cc.error
         : cc.cargando ? "Cargando registro…"
         : "Columna " + colSel + " · en rojo, las que ya tienen notas (mantén el dedo encima para ver cuál).",
-      colSel,
-      colEdit: s.colEdit,
-      toggleColEdit: () => this.setState({ colEdit: !s.colEdit }),
 
       filtros: FILTROS.map((nombre) => {
         const on = s.filtro === nombre;
@@ -991,28 +988,32 @@ class Component extends DCLogic {
         };
       }),
 
-      examenes: EXAMENES.map((x, i) => {
-        const on = s.abierto === i;
-        return {
-          ...x, inicial: String(i + 1).padStart(2, "0"),
-          linea: i === 0 ? "transparent" : "#E2DACB",
-          iconoFondo: x.tono === "abierto" ? "#F2E5CF" : x.tono === "impreso" ? "#DDE4DC" : "#EFE9DE",
-          iconoTinta: x.tono === "abierto" ? "#8A6A2A" : "#1D4B43",
-          marcaFondo: x.tono === "abierto" ? "#DDE4DC" : x.tono === "impreso" ? "#DFE7EA" : "#EFE9DE",
-          marcaTinta: x.tono === "abierto" ? "#1D4B43" : x.tono === "impreso" ? "#3D6472" : "#6E7B74",
-          desplegado: on,
-          giro: on ? "rotate(180deg)" : "rotate(0deg)",
-          abrir: () => this.setState({ abierto: on ? null : i }),
-          verTodo: this.ir(x.vista)
-        };
-      }),
-
-      notas: NOTAS.map(([nombre, curso, valor], i) => ({
-        i: i + 1, nombre, curso,
-        valor: valor === null ? "sin nota" : valor,
-        color: valor === null ? "#9AA69F" : valor < 27 ? "#A65543" : "#1D4B43",
-        tam: valor === null ? "11px" : "16px"
-      })),
+      examenes: s.examenes
+        .filter((x) => x.nivel === nivelDe(s.filtro) && x.paralelos.indexOf(paralelosDe(s.filtro)[0]) >= 0)
+        .map((x, i) => {
+          const on = s.abierto === x.id_examen;
+          const conNotas = x.notas_pasadas > 0;
+          return {
+            inicial: x.id_examen.replace(/^EX0*/, "").padStart(2, "0"),
+            titulo: x.tema,
+            meta: x.id_examen + " · " + fechaCorta(x.fecha) + " · " + x.preguntas.length + " preguntas · col. " + x.columna_registro,
+            estado: conNotas ? "Con notas" : "Sin notas",
+            nota: conNotas ? x.notas_pasadas + " en el registro" : x.paralelos.length > 1 ? "paralelos " + x.paralelos.join(" y ") : "",
+            linea: i === 0 ? "transparent" : "#E2DACB",
+            iconoFondo: conNotas ? "#DDE4DC" : "#F2E5CF",
+            iconoTinta: conNotas ? "#1D4B43" : "#8A6A2A",
+            marcaFondo: conNotas ? "#DDE4DC" : "#EFE9DE",
+            marcaTinta: conNotas ? "#1D4B43" : "#6E7B74",
+            desplegado: on,
+            giro: on ? "rotate(180deg)" : "rotate(0deg)",
+            abrir: () => this.setState({ abierto: on ? null : x.id_examen }),
+            alumnos: Object.keys(x.asignacion).length - x.excluidos.length,
+            pasadas: x.notas_pasadas,
+            columna: x.columna_registro,
+            reimprimir: () => this.reimprimir(x),
+            reimprimirTexto: s.preparando === x.id_examen ? "Preparando…" : "Imprimir de nuevo"
+          };
+        }),
 
       imprLista: lista.map((a) => {
         const fuera = s.imprFuera.indexOf(a.carnet) >= 0;
@@ -1051,7 +1052,6 @@ class Component extends DCLogic {
         quitar: () => this.setState((st) => ({ lectura: st.lectura.filter((_, j) => j !== i) }))
       })),
       lecturaResumen: s.lectura.length + (s.lectura.length === 1 ? " hoja leída" : " hojas leídas"),
-      dudosas: s.lectura.filter((r) => !r.ok).length,
       leerFotos: () => this.setState({ lectura: LECTURA_DEMO.slice() }),
       descartarLectura: () => this.setState({ lectura: [] }),
       confirmarLectura: () => {

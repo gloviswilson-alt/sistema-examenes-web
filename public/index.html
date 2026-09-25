@@ -259,18 +259,12 @@
             <div style="font-size:12.5px;color:#9AA69F;margin-top:9px">{{ colDetalle }}</div>
           </div>
 
-          <div style="background:#FBF9F5;border-radius:22px;padding:18px 0 14px">
-            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:0 20px 11px">
+          <div style="background:#FBF9F5;border-radius:22px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+            <div>
               <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:0.13em;font-weight:500;color:#9AA69F">A quién imprimir</div>
-              <div style="font-size:12.5px;color:#6E7B74">{{ imprFueraTexto }}</div>
+              <div style="font-size:14.5px;color:#22302C;margin-top:4px">{{ imprFueraTexto }}</div>
             </div>
-            <sc-for list="{{ imprLista }}" as="a" hint-placeholder-count="8">
-              <button sc-camel-on-click="{{ a.toggle }}" style="width:100%;text-align:left;display:flex;align-items:center;gap:11px;padding:10px 20px;border:0;border-top:1px solid #E2DACB;background:transparent;font:inherit;cursor:pointer">
-                <span style="width:21px;height:21px;border-radius:7px;border:1.5px solid {{ a.marcoBorde }};background:{{ a.marcoFondo }};flex:none;display:flex;align-items:center;justify-content:center;color:#FBF9F5;font-size:12px;line-height:1">{{ a.tick }}</span>
-                <span style="font-size:13px;color:#9AA69F;min-width:22px;font-variant-numeric:tabular-nums">{{ a.n }}</span>
-                <span style="font-size:14.5px;color:{{ a.tinta }};text-decoration:{{ a.deco }}">{{ a.nombre }}</span>
-              </button>
-            </sc-for>
+            <button sc-camel-on-click="{{ elegirCrear }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:14px;padding:9px 16px;font:inherit;font-size:13.5px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">Elegir alumnos</button>
           </div>
 
           <div style="background:#1D4B43;color:#F1EDE3;border-radius:22px;padding:20px 22px;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap">
@@ -297,19 +291,13 @@
           <button sc-camel-on-click="{{ irInicio }}" style="border:1.5px solid #3C6B61;background:transparent;color:#F1EDE3;border-radius:16px;padding:12px 18px;font:inherit;font-size:14px;cursor:pointer" style-hover="background:#153931">Volver al inicio</button>
         </div>
       </div>
-      <div style="background:#FBF9F5;border-radius:22px;padding:18px 0 14px;margin-top:14px">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:0 20px 11px">
-          <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:0.13em;font-weight:500;color:#9AA69F">A quién imprimir</div>
-          <button sc-camel-on-click="{{ impTodos }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:12px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer">{{ impTodosTexto }}</button>
-        </div>
-        <sc-for list="{{ impLista }}" as="a" hint-placeholder-count="8">
-          <button sc-camel-on-click="{{ a.toggle }}" style="width:100%;text-align:left;display:flex;align-items:center;gap:11px;padding:10px 20px;border:0;border-top:1px solid #E2DACB;background:transparent;font:inherit;cursor:pointer">
-            <span style="width:21px;height:21px;border-radius:7px;border:1.5px solid {{ a.marcoBorde }};background:{{ a.marcoFondo }};flex:none;display:flex;align-items:center;justify-content:center;color:#FBF9F5;font-size:12px;line-height:1">{{ a.tick }}</span>
-            <span style="font-size:13px;color:#9AA69F;min-width:22px;font-variant-numeric:tabular-nums">{{ a.n }}</span>
-            <span style="font-size:14.5px;color:{{ a.tinta }};text-decoration:{{ a.deco }}">{{ a.nombre }}</span>
-          </button>
-        </sc-for>
-      </div>
+      <div style="margin-top:14px"><div style="background:#FBF9F5;border-radius:22px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+            <div>
+              <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:0.13em;font-weight:500;color:#9AA69F">A quién imprimir</div>
+              <div style="font-size:14.5px;color:#22302C;margin-top:4px">{{ impFueraTexto }}</div>
+            </div>
+            <button sc-camel-on-click="{{ elegirImprimir }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:14px;padding:9px 16px;font:inherit;font-size:13.5px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">Elegir alumnos</button>
+          </div></div>
       <div style="background:#FBF9F5;border-radius:22px;padding:18px 20px;margin-top:14px;font-size:13.5px;line-height:1.55;color:#22302C">
         <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:0.13em;font-weight:500;color:#A65543;margin-bottom:8px">Antes de imprimir</div>
         En la ventana de impresión elige <b>tamaño Carta</b>, <b>márgenes: Ninguno</b> y <b>escala 100 %</b> (predeterminada).
@@ -454,6 +442,36 @@
     <div style="font-size:12.5px;color:#9AA69F;text-align:center;margin:38px 0 10px">Unidad Educativa Niño Jesús II · Santa Cruz</div>
   </div>
 
+  <!-- A quién imprimir: ventana encima de todo; la lista se desplaza por dentro y los botones quedan fijos. -->
+  <sc-if value="{{ eligiendoAlumnos }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:50;background:rgba(27,33,30,.55);display:flex;align-items:center;justify-content:center;padding:clamp(0px,3vw,28px)">
+      <div style="background:#FBF9F5;width:min(1180px,100%);max-height:100%;display:flex;flex-direction:column;border-radius:clamp(0px,2.4vw,22px);box-shadow:0 24px 60px rgba(0,0,0,.28);overflow:hidden">
+        <div style="flex:none;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px 14px;padding:16px 20px;border-bottom:1px solid #E2DACB">
+          <div style="font-family:Prata,Georgia,serif;font-size:19px;color:#1D4B43">A quién imprimir</div>
+          <div style="display:flex;align-items:center;gap:14px">
+            <span style="font-size:13px;color:#6E7B74">{{ alumnosCuenta }}</span>
+            <button sc-camel-on-click="{{ alumnosTodos }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:12px;padding:7px 13px;font:inherit;font-size:12.5px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">{{ alumnosTodosTexto }}</button>
+          </div>
+        </div>
+        <div style="flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1px;background:#E2DACB">
+            <sc-for list="{{ alumnosLista }}" as="a" hint-placeholder-count="8">
+              <button sc-camel-on-click="{{ a.toggle }}" style="text-align:left;display:flex;align-items:center;gap:10px;padding:10px 14px;border:0;background:#FBF9F5;font:inherit;cursor:pointer">
+                <span style="width:20px;height:20px;border-radius:7px;border:1.5px solid {{ a.marcoBorde }};background:{{ a.marcoFondo }};flex:none;display:flex;align-items:center;justify-content:center;color:#FBF9F5;font-size:12px;line-height:1">{{ a.tick }}</span>
+                <span style="font-size:12.5px;color:#9AA69F;min-width:26px;font-variant-numeric:tabular-nums">{{ a.n }}</span>
+                <span style="font-size:13.5px;color:{{ a.tinta }};text-decoration:{{ a.deco }}">{{ a.nombre }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="flex:none;display:flex;justify-content:flex-end;align-items:center;gap:14px;padding:13px 20px;border-top:1px solid #E2DACB;background:#FBF9F5">
+          <button sc-camel-on-click="{{ alumnosCancelar }}" style="border:0;background:transparent;color:#6E7B74;font:inherit;font-size:13.5px;text-decoration:underline;text-underline-offset:4px;cursor:pointer">Cancelar</button>
+          <button sc-camel-on-click="{{ alumnosListo }}" style="border:0;background:#1D4B43;color:#FBF9F5;border-radius:16px;padding:11px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#153931">{{ alumnosListoTexto }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ aviso }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#22302C;color:#fff;padding:11px 18px;border-radius:14px;font-size:13.5px;z-index:60;max-width:90vw">{{ aviso }}</div>
   </sc-if>
@@ -539,7 +557,9 @@ class Component extends DCLogic {
     filtro: "Sexto A", aviso: "", abierto: null,
     // Notas por foto: filas por alumno, avisos de hojas que no se pueden pasar e imágenes de diagnóstico.
     lectura: [], problemas: [], diag: [], verDiag: false, leyendo: "", pasando: false,
-    imprFuera: []
+    imprFuera: [],
+    // Ventana "A quién imprimir": qué lista se edita ("imprFuera" al crear, "impFuera" al imprimir) y su copia para Cancelar.
+    eligeFuera: null, respaldoFuera: []
   };
 
   ir = (vista) => () => {
@@ -830,7 +850,11 @@ class Component extends DCLogic {
       if (e.target.closest && e.target.closest("[data-cal]")) return;
       this.setState({ calAbierto: false });
     };
-    this._esc = (e) => { if (e.key === "Escape") this.setState({ calAbierto: false, tema: null, sel: [] }); };
+    this._esc = (e) => {
+      if (e.key !== "Escape") return;
+      const st = this.state;
+      this.setState(st.eligeFuera ? { [st.eligeFuera]: st.respaldoFuera, eligeFuera: null } : { calAbierto: false, tema: null, sel: [] });
+    };
     document.addEventListener("click", this._fuera, true);
     document.addEventListener("keydown", this._esc);
   }
@@ -908,6 +932,37 @@ class Component extends DCLogic {
     return p ? p.letra : null;
   }
 
+  textoFuera(total, fuera) {
+    return fuera ? (total - fuera) + " de " + total + " alumnos · " + fuera + " sin imprimir" : "Todos (" + total + " alumnos)";
+  }
+
+  // Bindings de la ventana "A quién imprimir" para la lista que se esté editando.
+  ventanaAlumnos(alumnos) {
+    const s = this.state, clave = s.eligeFuera, fuera = clave ? s[clave] : [];
+    const dosPar = alumnos.some((x) => x.par !== alumnos[0].par);
+    const van = alumnos.length - fuera.length;
+    return {
+      eligiendoAlumnos: !!clave,
+      alumnosLista: alumnos.map((a) => {
+        const f = fuera.indexOf(a.carnet) >= 0;
+        return {
+          nombre: a.nombre, n: (dosPar ? a.par + " " : "") + a.numero,
+          tinta: f ? "#9AA69F" : "#22302C", deco: f ? "line-through" : "none",
+          marcoFondo: f ? "transparent" : "#1D4B43", marcoBorde: f ? "#E2DACB" : "#1D4B43", tick: f ? "" : "✓",
+          toggle: () => this.setState((st) => ({
+            [clave]: st[clave].indexOf(a.carnet) >= 0 ? st[clave].filter((x) => x !== a.carnet) : st[clave].concat([a.carnet])
+          }))
+        };
+      }),
+      alumnosCuenta: van + " de " + alumnos.length,
+      alumnosTodosTexto: fuera.length ? "Marcar todos" : "Desmarcar todos",
+      alumnosTodos: () => this.setState({ [clave]: fuera.length ? [] : alumnos.map((a) => a.carnet) }),
+      alumnosListoTexto: "Listo · " + van + (van === 1 ? " alumno" : " alumnos"),
+      alumnosListo: () => this.setState({ eligeFuera: null }),
+      alumnosCancelar: () => this.setState({ [clave]: s.respaldoFuera, eligeFuera: null })
+    };
+  }
+
   pick(activo, tonoActivo) {
     const a = tonoActivo || "#1D4B43";
     return activo
@@ -947,7 +1002,6 @@ class Component extends DCLogic {
     const suma = s.hoja.reduce((a, h) => a + (Number(h.pts) || 0), 0);
     const lista = cc.alumnos || [];
     const imprimir = lista.filter((a) => s.imprFuera.indexOf(a.carnet) < 0).length;
-    const dosPar = paralelosDe(s.curso).length > 1;
 
     return {
       vEntrar: v("entrar"), vNav: s.vista === "entrar" ? "none" : "block",
@@ -973,19 +1027,8 @@ class Component extends DCLogic {
       impResumen: s.impresion
         ? (s.impresion.alumnos.length - s.impFuera.length) + " de " + s.impresion.alumnos.length + " alumnos · " + s.impresion.preguntas.length + " preguntas · columna " + s.impresion.columna
         : "",
-      impLista: (s.impresion ? s.impresion.alumnos : []).map((a) => {
-        const fuera = s.impFuera.indexOf(a.carnet) >= 0;
-        return {
-          nombre: a.nombre, n: (s.impresion.alumnos.some((x) => x.par !== a.par) ? a.par + " " : "") + a.numero,
-          tinta: fuera ? "#9AA69F" : "#22302C", deco: fuera ? "line-through" : "none",
-          marcoFondo: fuera ? "transparent" : "#1D4B43", marcoBorde: fuera ? "#E2DACB" : "#1D4B43", tick: fuera ? "" : "✓",
-          toggle: () => this.setState((st) => ({
-            impFuera: st.impFuera.indexOf(a.carnet) >= 0 ? st.impFuera.filter((x) => x !== a.carnet) : st.impFuera.concat([a.carnet])
-          }))
-        };
-      }),
-      impTodosTexto: s.impFuera.length ? "Marcar todos" : "Desmarcar todos",
-      impTodos: () => this.setState({ impFuera: s.impFuera.length ? [] : s.impresion.alumnos.map((a) => a.carnet) }),
+      impFueraTexto: s.impresion ? this.textoFuera(s.impresion.alumnos.length, s.impFuera.length) : "",
+      elegirImprimir: () => this.setState({ eligeFuera: "impFuera", respaldoFuera: s.impFuera }),
       imprimirHojas: this.imprimirHojas,
       imprimirTexto: s.imprimiendo ? "Preparando…" : "Imprimir hojas",
 
@@ -1164,23 +1207,9 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
           };
         }),
 
-      imprLista: lista.map((a) => {
-        const fuera = s.imprFuera.indexOf(a.carnet) >= 0;
-        return {
-          nombre: a.nombre, n: (dosPar ? a.par + " " : "") + a.numero,
-          tinta: fuera ? "#9AA69F" : "#22302C",
-          deco: fuera ? "line-through" : "none",
-          marcoFondo: fuera ? "transparent" : "#1D4B43",
-          marcoBorde: fuera ? "#E2DACB" : "#1D4B43",
-          tick: fuera ? "" : "✓",
-          toggle: () => this.setState((st) => ({
-            imprFuera: st.imprFuera.indexOf(a.carnet) >= 0
-              ? st.imprFuera.filter((x) => x !== a.carnet)
-              : st.imprFuera.concat([a.carnet])
-          }))
-        };
-      }),
-      imprFueraTexto: s.imprFuera.length ? s.imprFuera.length + " sin imprimir" : "todos incluidos",
+      imprFueraTexto: this.textoFuera(lista.length, s.imprFuera.length),
+      elegirCrear: () => this.setState({ eligeFuera: "imprFuera", respaldoFuera: s.imprFuera }),
+      ...this.ventanaAlumnos(s.eligeFuera === "impFuera" ? (s.impresion ? s.impresion.alumnos : []) : lista),
       totalAlumnos: imprimir + (imprimir === 1 ? " alumno" : " alumnos"),
       imprResumen: s.hoja.length + " preguntas · " + suma + "/45 puntos · columna " + colSel,
       guardarExamen: this.guardarExamen,

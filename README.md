@@ -72,7 +72,8 @@ vacío, y bloquea cada registro mientras escribe (Netlify Blobs).
 
 ## Hoja impresa
 
-Tamaño carta, escala 100 %, sin márgenes. La franja superior mide lo mismo que el QR (15,08 mm):
+Tamaño carta, escala 100 %, sin márgenes (el pie queda a 6 mm del borde inferior). Al final del examen, abajo
+a la derecha de la última plana, va el espacio para la firma del estudiante. La franja superior mide lo mismo que el QR (15,08 mm):
 QR + 44 burbujas (notas 2 a 45) en posiciones fijas en mm, tomadas de la geometría medida en papel
 (`G` y `RB` en `hoja.js`). El QR lleva `EX001-<carnet>-<n.º de lista><forma>` (versión 1, nivel M).
 

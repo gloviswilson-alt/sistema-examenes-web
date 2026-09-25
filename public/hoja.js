@@ -165,7 +165,7 @@
 @page { size: letter; margin: 0 }
 * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact }
 html, body { margin: 0; background: #fff }
-.pag { width: 215.9mm; height: 279.4mm; padding: 5mm 12.7mm 11.7mm; display: flex; flex-direction: column;
+.pag { width: 215.9mm; height: 279.4mm; padding: 5mm 12.7mm 6mm; display: flex; flex-direction: column;
   color: #1B211E; font-family: Archivo, system-ui, sans-serif; break-after: page; overflow: hidden; position: relative }
 .pag:last-child { break-after: auto }
 .franja { position: relative; height: ${G.lado}mm; flex: none }
@@ -185,7 +185,7 @@ html, body { margin: 0; background: #fff }
 .alumno .n { font-family: 'Instrument Serif', Georgia, serif; font-size: 21px; line-height: 1.15 }
 .alumno.cont .n { font-size: 18px }
 .meta { font-size: 8px; font-weight: 500; white-space: nowrap; letter-spacing: .16em; text-transform: uppercase; color: #5F6B64 }
-.cuerpo { flex: 1; min-height: 0; overflow: hidden }
+.cuerpo { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column }
 .preg { display: flex; gap: 14px; margin-top: 15px }
 .num { font-family: 'Instrument Serif', Georgia, serif; font-size: 19px; color: #B08344; min-width: 24px; line-height: 1.2 }
 .enun { display: flex; justify-content: space-between; gap: 18px; align-items: baseline }
@@ -199,7 +199,10 @@ html, body { margin: 0; background: #fff }
 .op span { font-family: Spectral, Georgia, serif; font-size: 14px; line-height: 1.4 }
 .lineas { display: flex; flex-direction: column; gap: 12px; margin-top: 12px }
 .lineas div { border-bottom: 0.3mm solid #BDB6A6; height: 15px }
-.pie { margin-top: auto; padding-top: 12px; border-top: 1px solid #DED7C7; display: flex; justify-content: space-between; align-items: baseline; flex: none }
+.firma { margin: auto 0 3mm auto; padding-top: 16mm; width: 75mm; text-align: center; flex: none }
+.firma div { border-bottom: 0.3mm solid #5F6B64 }
+.firma span { display: block; margin-top: 5px; font-size: 7.5px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: #5F6B64 }
+.pie { margin-top: auto; padding-top: 8px; border-top: 1px solid #DED7C7; display: flex; justify-content: space-between; align-items: baseline; flex: none }
 .pie span { font-size: 7.5px; font-weight: 500; white-space: nowrap; letter-spacing: .2em; text-transform: uppercase; color: #5F6B64 }`;
 
   function franja(qrTexto) {
@@ -226,7 +229,8 @@ html, body { margin: 0; background: #fff }
   // Si queda espacio libre al pie de la página, la última pregunta (si lleva espacio para
   // resolver) recibe más líneas hasta llenarlo.
   function completarLineas(doc, cuerpo) {
-    const lineas = cuerpo.lastElementChild && cuerpo.lastElementChild.querySelector(".lineas");
+    const pregs = cuerpo.querySelectorAll(".preg");
+    const lineas = pregs.length && pregs[pregs.length - 1].querySelector(".lineas");
     if (!lineas) return;
     while (true) {
       lineas.appendChild(doc.createElement("div"));
@@ -249,18 +253,22 @@ html, body { margin: 0; background: #fff }
         '<div class="titulo"><span class="kicker">' + kicker + '</span><div class="nombre-ex">' + esc(d.nombre) + "</div></div>" +
         '<div class="alumno"><div class="n">' + esc(nombrePropio(a.nombre)) + '</div><span class="meta">C.I. ' + esc(a.carnet) + " &nbsp;·&nbsp; N.º " + a.numero + " &nbsp;·&nbsp; " + fecha + "</span></div>" +
         '<div class="cuerpo"></div>' + pie)];
+      // Página siguiente con encabezado corto; devuelve su cuerpo.
+      const continuar = () => {
+        paginas.push(pagina('<div class="alumno cont"><div class="n">' + esc(nombrePropio(a.nombre)) + '</div><span class="meta">N.º ' + a.numero + " &nbsp;·&nbsp; " + fechaCorta(d.fecha) + "</span></div>" +
+          '<div class="cuerpo"></div>' + pie));
+        return paginas.at(-1).querySelector(".cuerpo");
+      };
       d.preguntas.forEach((p, i) => {
         let dest = paginas.at(-1).querySelector(".cuerpo");
         dest.insertAdjacentHTML("beforeend", bloquePregunta(i + 1, p, forma));
-        if (dest.scrollHeight > dest.clientHeight + 1 && dest.children.length > 1) {
-          const bloque = dest.lastElementChild;
-          const nueva = pagina('<div class="alumno cont"><div class="n">' + esc(nombrePropio(a.nombre)) + '</div><span class="meta">N.º ' + a.numero + " &nbsp;·&nbsp; " + fechaCorta(d.fecha) + "</span></div>" +
-            '<div class="cuerpo"></div>' + pie);
-          paginas.push(nueva);
-          dest = nueva.querySelector(".cuerpo");
-          dest.appendChild(bloque);
-        }
+        if (dest.scrollHeight > dest.clientHeight + 1 && dest.children.length > 1) continuar().appendChild(dest.lastElementChild);
       });
+      // Espacio para la firma del estudiante al final del examen (abajo a la derecha de la última página).
+      // Si no entra, la última pregunta pasa a una página nueva junto con la firma.
+      const ultimo = paginas.at(-1).querySelector(".cuerpo");
+      ultimo.insertAdjacentHTML("beforeend", '<div class="firma"><div></div><span>Firma del estudiante</span></div>');
+      if (ultimo.scrollHeight > ultimo.clientHeight + 1 && ultimo.children.length > 2) continuar().append(...[...ultimo.children].slice(-2));
       paginas.forEach((pg, i) => {
         pg.querySelector(".nro").textContent = "Pág. " + (i + 1) + " de " + paginas.length;
         completarLineas(doc, pg.querySelector(".cuerpo"));

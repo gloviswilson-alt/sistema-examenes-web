@@ -8,6 +8,7 @@
 <script>window.__resources = {"https://unpkg.com/react@18.3.1/umd/react.production.min.js": "vendor/react.production.min.js", "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js": "vendor/react-dom.production.min.js"};</script>
 <script src="vendor/dc-runtime.js"></script>
 <script src="hoja.js" charset="utf-8"></script>
+<script src="lector.js" charset="utf-8"></script>
 </head>
 <body>
 <x-dc>
@@ -359,20 +360,24 @@
           <svg sc-camel-view-box="0 0 24 24" style="width:26px;height:26px;fill:none;stroke:#8A6A2A;stroke-width:1.5;stroke-linecap:round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
         </div>
         <div style="font-family:Prata,Georgia,serif;font-size:22px;color:#1D4B43">Fotografía las hojas calificadas</div>
-        <p style="font-size:14px;color:#6E7B74;max-width:420px;margin:8px auto 20px">De una en una o hasta 12 en abanico. El QR y las burbujas de la nota deben verse completos.</p>
-        <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:20px">
-          <button sc-camel-on-click="{{ setFotoUna }}" style="border:0;background:{{ fotoUnaFondo }};color:{{ fotoUnaTinta }};border-radius:22px;padding:8px 18px;font:inherit;font-size:13.5px;font-weight:500;cursor:pointer">Una hoja por foto</button>
-          <button sc-camel-on-click="{{ setFotoVarias }}" style="border:0;background:{{ fotoVariasFondo }};color:{{ fotoVariasTinta }};border-radius:22px;padding:8px 18px;font:inherit;font-size:13.5px;font-weight:500;cursor:pointer">Varias en abanico</button>
-        </div>
-        <button sc-camel-on-click="{{ leerFotos }}" style="border:0;background:#1D4B43;color:#FBF9F5;border-radius:18px;padding:14px 24px;font:inherit;font-size:15px;font-weight:500;cursor:pointer" style-hover="background:#153931">Tomar o elegir fotos</button>
+        <p style="font-size:14px;color:#6E7B74;max-width:420px;margin:8px auto 20px">Una hoja por foto o hasta 14 en abanico. El QR y las burbujas de la nota deben verse completos. La foto se lee en tu celular y no se sube a ningún lado.</p>
+        <button sc-camel-on-click="{{ leerFotos }}" style="border:0;background:#1D4B43;color:#FBF9F5;border-radius:18px;padding:14px 24px;font:inherit;font-size:15px;font-weight:500;cursor:pointer" style-hover="background:#153931">{{ leerTexto }}</button>
       </div>
+
+      <sc-if value="{{ hayProblemas }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#F2E1DB;border-radius:20px;padding:14px 22px;margin-top:14px;color:#A65543;font-size:13.5px">
+          <sc-for list="{{ problemas }}" as="t" hint-placeholder-count="2">
+            <div style="padding:3px 0">{{ t }}</div>
+          </sc-for>
+        </div>
+      </sc-if>
 
       <sc-if value="{{ hayLectura }}" hint-placeholder-val="{{ false }}">
         <div style="background:#FBF9F5;border-radius:24px;padding:18px 0 16px;margin-top:14px">
           <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:0 22px 12px">
             <div>
               <div style="font-family:Prata,Georgia,serif;font-size:19px;color:#1D4B43">Confirma lo que leí</div>
-              <div style="font-size:12.5px;color:#6E7B74;margin-top:2px">Nada se guarda hasta que lo apruebes.</div>
+              <div style="font-size:12.5px;color:#6E7B74;margin-top:2px">Nada se guarda hasta que lo apruebes. Solo se escribe en celdas vacías.</div>
             </div>
             <div style="font-size:12.5px;color:#9AA69F;text-align:right">{{ lecturaResumen }}</div>
           </div>
@@ -380,18 +385,28 @@
             <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:11px;align-items:center;padding:11px 22px;border-top:1px solid #E2DACB">
               <span>
                 <span style="display:block;font-size:14.5px">{{ r.nombre }}</span>
-                <span style="display:block;font-size:12px;color:#9AA69F;margin-top:1px">{{ r.curso }} · {{ r.codigo }}</span>
+                <span style="display:block;font-size:12px;color:#9AA69F;margin-top:1px">{{ r.detalle }}</span>
+                <span style="display:{{ r.motivoVer }};font-size:12px;color:{{ r.marcaTinta }};margin-top:2px">{{ r.motivo }}</span>
               </span>
               <span style="padding:3px 10px;border-radius:20px;font-size:10px;text-transform:uppercase;letter-spacing:0.09em;font-weight:500;background:{{ r.marcaFondo }};color:{{ r.marcaTinta }}">{{ r.estado }}</span>
-              <input type="number" value="{{ r.nota }}" sc-camel-on-change="{{ r.setNota }}" style="width:62px;text-align:center;border:1.5px solid #E2DACB;border-radius:12px;padding:7px 4px;font:inherit;font-size:14.5px;background:#fff">
+              <input type="number" min="2" max="45" value="{{ r.nota }}" sc-camel-on-change="{{ r.setNota }}" style="width:62px;text-align:center;border:1.5px solid #E2DACB;border-radius:12px;padding:7px 4px;font:inherit;font-size:14.5px;background:#fff">
               <button sc-camel-on-click="{{ r.quitar }}" title="Descartar esta hoja" style="border:0;background:transparent;color:#9AA69F;font:inherit;font-size:16px;cursor:pointer;padding:4px 6px" style-hover="color:#A65543">×</button>
             </div>
           </sc-for>
           <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding:15px 22px 0;border-top:1px solid #E2DACB;margin-top:11px">
             <button sc-camel-on-click="{{ descartarLectura }}" style="border:0;background:transparent;color:#6E7B74;font:inherit;font-size:13.5px;text-decoration:underline;text-underline-offset:4px;cursor:pointer">Descartar todo</button>
-            <button sc-camel-on-click="{{ abrirRegistro }}" style="border:1.5px solid #E2DACB;background:#FBF9F5;border-radius:16px;padding:11px 18px;font:inherit;font-size:14px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">Abrir mi registro</button>
-            <button sc-camel-on-click="{{ confirmarLectura }}" style="border:0;background:#1D4B43;color:#FBF9F5;border-radius:16px;padding:11px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#153931">Confirmar y pasar al registro</button>
+            <button sc-camel-on-click="{{ alternarDiag }}" style="border:1.5px solid #E2DACB;background:#FBF9F5;border-radius:16px;padding:11px 18px;font:inherit;font-size:14px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">{{ diagTexto }}</button>
+            <button sc-camel-on-click="{{ confirmarLectura }}" style="border:0;background:#1D4B43;color:#FBF9F5;border-radius:16px;padding:11px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#153931">{{ pasarTexto }}</button>
           </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ verDiag }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#FBF9F5;border-radius:24px;padding:16px;margin-top:14px">
+          <div style="font-size:12.5px;color:#6E7B74;margin:0 6px 10px">Verde: QR y nota leídos (el punto verde es la burbuja marcada). Rojo: lo que no pude leer.</div>
+          <sc-for list="{{ diag }}" as="d" hint-placeholder-count="1">
+            <img src="{{ d }}" alt="Lo que vio el lector" style="display:block;width:100%;border-radius:14px;margin-bottom:10px">
+          </sc-for>
         </div>
       </sc-if>
     </div>
@@ -464,14 +479,6 @@ const CURSOS = ["Sexto A", "Sexto B", "Sexto A y B", "Segundo A", "Segundo B", "
 const FILTROS = ["Segundo A", "Segundo B", "Sexto A", "Sexto B"];
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 
-const LECTURA_DEMO = [
-  { nombre: "Arias Flores, Camila", curso: "Sexto A", codigo: "6B-01-A", nota: 42, ok: true },
-  { nombre: "Balcázar Medina, Rodrigo", curso: "Sexto A", codigo: "6B-02-B", nota: 38, ok: true },
-  { nombre: "Callisaya Mamani, Andrea", curso: "Sexto A", codigo: "6B-03-C", nota: 21, ok: true },
-  { nombre: "Durán Vásquez, Luis", curso: "Sexto A", codigo: "6B-04-D", nota: 0, ok: false },
-  { nombre: "Gutiérrez Paz, Marco", curso: "Sexto A", codigo: "6B-06-B", nota: 40, ok: true }
-];
-
 // Backend: función de Netlify del mismo sitio.
 const API = "/.netlify/functions/panel";
 const AJUSTES_BASE = { trimestre: "Tercer trimestre", profesor: "Prof. Glovis Sandoval Cabrera" };
@@ -485,6 +492,25 @@ const paralelosDe = (curso) => curso.slice(curso.indexOf(" ") + 1).split(" y ");
 const cursoKey = (nivel, par) => (nivel === "Sexto" ? "6" : "2") + par;
 const hoyBolivia = () => new Date(Date.now() - 4 * 3600000).toISOString().slice(0, 10);
 const LETRAS = ["I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
+const notaValida = (n) => Number.isInteger(n) && n >= 2 && n <= 45;
+const normCarnet = (c) => String(c || "").replace(/\s+/g, "").toUpperCase();
+// Etiqueta de cada fila de Notas por foto: primero lo que respondió el registro, luego lo leído.
+const marcaLectura = (r) => {
+  const verde = { fondo: "#DDE4DC", tinta: "#1D4B43" }, rojo = { fondo: "#F2E1DB", tinta: "#A65543" };
+  const res = r.resultado;
+  if (res && res.estado === "escrita") return { ...verde, estado: "Pasada" };
+  if (res && res.estado === "ocupada") return { fondo: "#F2E5CF", tinta: "#8A6A2A", estado: "Ya tenía nota", motivo: res.motivo };
+  if (res) return { ...rojo, estado: "No pasó", motivo: res.motivo };
+  if (!notaValida(r.nota)) return { ...rojo, estado: "Revisar", motivo: r.motivo || "La nota debe ser un número entero de 2 a 45." };
+  return { ...verde, estado: r.corregida ? "Corregida" : "Leída", motivo: r.motivo };
+};
+// Foto reducida con lo que vio el lector, para el modo diagnóstico.
+const imagenDiag = (canvas) => {
+  const k = Math.min(1, 1400 / canvas.width), c = document.createElement("canvas");
+  c.width = Math.round(canvas.width * k); c.height = Math.round(canvas.height * k);
+  c.getContext("2d").drawImage(canvas, 0, 0, c.width, c.height);
+  return c.toDataURL("image/jpeg", 0.8);
+};
 const nombreDe = (profesor) => String(profesor || "").replace(/^prof(\.|esor|esora)?\s*/i, "").split(" ")[0];
 
 class Component extends DCLogic {
@@ -500,7 +526,9 @@ class Component extends DCLogic {
     bancos: {}, registros: {}, impresion: null, impFuera: [], imprimiendo: false, examenes: [], preparando: null,
     tema: null, sel: [], hoja: [], nombre: "", guardando: false,
     formasAbiertas: false, col: null, colHover: null,
-    filtro: "Sexto A", foto: "varias", aviso: "", lectura: [], abierto: null,
+    filtro: "Sexto A", aviso: "", abierto: null,
+    // Notas por foto: filas por alumno, avisos de hojas que no se pueden pasar e imágenes de diagnóstico.
+    lectura: [], problemas: [], diag: [], verDiag: false, leyendo: "", pasando: false,
     imprFuera: []
   };
 
@@ -544,7 +572,7 @@ class Component extends DCLogic {
       const impresion = {
         id: r.id_examen, nombre: v.nombre, fecha: s.fecha, duracion: s.minutos ? s.minutos + " min" : "",
         nivel: nivelDe(s.curso), trimestre: s.ajustes.trimestre, profesor: s.ajustes.profesor, columna: v.col,
-        asignacion: r.asignacion,
+        asignacion: r.asignacion, excluidos: s.imprFuera,
         alumnos: cc.alumnos,
         preguntas: s.hoja.map((h) => ({ puntaje: h.pts, espacio: h.esp, formas: B.preguntas.find((q) => q.codigo === h.codigo).formas }))
       };
@@ -646,7 +674,7 @@ class Component extends DCLogic {
         impresion: {
           id: ex.id_examen, nombre: ex.tema, fecha: ex.fecha, duracion: ex.duracion, nivel: ex.nivel,
           trimestre: this.state.ajustes.trimestre, profesor: this.state.ajustes.profesor, columna: ex.columna_registro,
-          asignacion: ex.asignacion, alumnos, preguntas, reimpresion: true
+          asignacion: ex.asignacion, excluidos: ex.excluidos, alumnos, preguntas, reimpresion: true
         },
         // Al reimprimir (hoja arruinada, alumno que rinde otro día) se empieza sin nadie marcado.
         impFuera: alumnos.map((a) => a.carnet), vista: "imprimir"
@@ -658,6 +686,110 @@ class Component extends DCLogic {
     }
   };
 
+  // Alumnos (con nombre y n.º de lista) de los paralelos de un examen; usa los registros ya leídos.
+  alumnosDe = async (ex) => {
+    const listas = await Promise.all(ex.paralelos.map(async (par) => {
+      const k = cursoKey(ex.nivel, par), reg = this.state.registros[k];
+      if (reg && reg.alumnos) return { par, alumnos: reg.alumnos };
+      const r = await this.llamar("notas", { nivel: ex.nivel, paralelo: par });
+      this.setState((st) => ({ registros: { ...st.registros, [k]: { columnas: r.columnas, alumnos: r.alumnos } } }));
+      return { par, alumnos: r.alumnos };
+    }));
+    return listas.flatMap((l) => l.alumnos.map((a) => ({ ...a, curso: ex.nivel + " " + l.par })));
+  };
+
+  // Abre la cámara o la galería y lee cada foto en el celular (la imagen no se envía).
+  leerFotos = () => {
+    if (this.state.leyendo) return;
+    const input = document.createElement("input");
+    input.type = "file"; input.accept = "image/*"; input.multiple = true;
+    input.onchange = () => this.procesarFotos([...input.files]);
+    input.click();
+  };
+
+  procesarFotos = async (archivos) => {
+    if (!archivos.length) return;
+    let examenes = this.state.examenes, refrescado = false;
+    const filas = [...this.state.lectura], problemas = [...this.state.problemas], diag = [...this.state.diag];
+    const agregar = (fila) => {
+      const i = filas.findIndex((x) => x.clave === fila.clave);
+      if (i < 0) return filas.push(fila);
+      const antes = filas[i];
+      if (antes.resultado && antes.resultado.estado === "escrita") return;
+      if (!notaValida(antes.nota)) filas[i] = fila;
+      else if (notaValida(fila.nota) && fila.nota !== antes.nota)
+        filas[i] = { ...antes, nota: "", corregida: false, motivo: "Leída dos veces con notas distintas (" + antes.nota + " y " + fila.nota + ")." };
+    };
+    try {
+      for (let n = 0; n < archivos.length; n++) {
+        this.setState({ leyendo: archivos.length > 1 ? "Leyendo foto " + (n + 1) + " de " + archivos.length + "…" : "Leyendo la foto…" });
+        const foto = archivos.length > 1 ? "Foto " + (n + 1) + ": " : "";
+        const { hojas, canvas } = await window.Lector.leerFoto(archivos[n]);
+        window.Lector.dibujarDiagnostico(canvas, hojas);
+        diag.push(imagenDiag(canvas));
+        if (!hojas.length) problemas.push(foto + "no encontré ningún QR. Acércate un poco y evita reflejos.");
+        for (const h of hojas) {
+          if (!h.qr) { problemas.push(foto + "hay un QR que no es de una hoja de examen."); continue; }
+          let ex = examenes.find((e) => e.id_examen === h.qr.id_examen);
+          if (!ex && !refrescado) {
+            refrescado = true;
+            examenes = (await this.llamar("estado")).examenes;
+            this.setState({ examenes });
+            ex = examenes.find((e) => e.id_examen === h.qr.id_examen);
+          }
+          if (!ex) { problemas.push(foto + "el examen " + h.qr.id_examen + " no está en la lista de exámenes."); continue; }
+          const asignada = Object.keys(ex.asignacion).find((c) => normCarnet(c) === h.qr.carnet);
+          if (!asignada || ex.asignacion[asignada] !== h.qr.forma) {
+            problemas.push(foto + "el QR (" + h.qr.carnet + ", forma " + h.qr.forma + ") no coincide con el examen " + ex.id_examen + ".");
+            continue;
+          }
+          const alumno = (await this.alumnosDe(ex)).find((a) => normCarnet(a.carnet) === h.qr.carnet);
+          agregar({
+            clave: ex.id_examen + "-" + h.qr.carnet, id_examen: ex.id_examen, carnet: asignada, forma: h.qr.forma,
+            columna: ex.columna_registro, nombre: alumno ? alumno.nombre : "Carnet " + asignada,
+            curso: alumno ? alumno.curso : ex.nivel, numero: alumno ? alumno.numero : h.qr.numero,
+            nota: h.nota === undefined ? "" : h.nota, motivo: h.nota === undefined ? h.motivo + "." : "",
+            corregida: false, resultado: null
+          });
+        }
+      }
+    } catch (e) {
+      problemas.push(e.message);
+    } finally {
+      filas.sort((a, b) => a.id_examen.localeCompare(b.id_examen) || a.curso.localeCompare(b.curso) || a.numero - b.numero);
+      this.setState({ lectura: filas, problemas, diag, leyendo: "" });
+    }
+  };
+
+  // Pasa al registro las notas aprobadas, un envío por examen. Las ya pasadas no se reenvían.
+  confirmarLectura = async () => {
+    const s = this.state;
+    if (s.pasando) return;
+    const pendientes = s.lectura.filter((r) => !r.resultado || (r.resultado.estado !== "escrita" && r.resultado.estado !== "ocupada"));
+    if (!pendientes.length) return this.avisar("No hay notas nuevas para pasar.");
+    if (pendientes.some((r) => !notaValida(r.nota))) return this.avisar("Corrige o quita las hojas marcadas «Revisar».");
+    this.setState({ pasando: true });
+    const resultados = {};
+    try {
+      for (const id of [...new Set(pendientes.map((r) => r.id_examen))]) {
+        const lote = pendientes.filter((r) => r.id_examen === id);
+        try {
+          const r = await this.llamar("pasar", { id_examen: id, notas: lote.map((x) => ({ carnet: x.carnet, nota: x.nota })) });
+          for (const x of r.resultados) resultados[id + "-" + normCarnet(x.carnet)] = { estado: x.estado, motivo: x.motivo };
+        } catch (e) {
+          for (const x of lote) resultados[x.clave] = { estado: "no escrita", motivo: e.message };
+        }
+      }
+    } finally {
+      const lectura = this.state.lectura.map((r) => (resultados[r.clave] ? { ...r, resultado: resultados[r.clave] } : r));
+      const escritas = Object.values(resultados).filter((x) => x.estado === "escrita").length;
+      // Los registros cambiaron: se vuelven a leer cuando se necesiten.
+      this.setState({ lectura, pasando: false, registros: {} });
+      this.avisar(escritas + (escritas === 1 ? " nota pasada" : " notas pasadas") + " al registro.");
+      this.cargar();
+    }
+  };
+
   imprimirHojas = async () => {
     if (this.state.imprimiendo) return;
     this.setState({ imprimiendo: true });
@@ -665,6 +797,14 @@ class Component extends DCLogic {
       const imp = this.state.impresion;
       const alumnos = imp.alumnos.filter((a) => this.state.impFuera.indexOf(a.carnet) < 0);
       if (!alumnos.length) return this.avisar("Marca al menos un alumno.");
+      // Quien se imprime deja de estar excluido; si no, "pasar" rechazaría su nota.
+      const impresos = new Set(alumnos.map((a) => normCarnet(a.carnet)));
+      const excluidos = imp.excluidos.filter((c) => !impresos.has(normCarnet(c)));
+      if (excluidos.length < imp.excluidos.length) {
+        await this.llamar("cambiar", { id_examen: imp.id, excluidos });
+        this.setState((st) => ({ impresion: { ...st.impresion, excluidos } }));
+        this.cargar();
+      }
       await window.Hoja.imprimir({ ...imp, alumnos });
     } catch (e) {
       this.avisar("No se pudo preparar la impresión: " + e.message);
@@ -773,7 +913,6 @@ class Component extends DCLogic {
     const B = s.bancos[nivelDe(s.curso)] || { cargando: true };
     const preguntas = B.preguntas || [];
     const porCodigo = (c) => preguntas.find((q) => q.codigo === c);
-    const gU = this.pick(s.foto === "una"), gV = this.pick(s.foto === "varias");
 
     const enHoja = new Set(s.hoja.map((h) => h.codigo));
     const bank = preguntas.filter((q) => q.tema === s.tema && !enHoja.has(q.codigo));
@@ -1037,34 +1176,35 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
       guardarExamen: this.guardarExamen,
       guardarTexto: s.guardando ? "Guardando…" : "Guardar examen",
 
+      hayProblemas: s.problemas.length > 0,
+      problemas: s.problemas,
       hayLectura: s.lectura.length > 0,
-      lectura: s.lectura.map((r, i) => ({
-        nombre: r.nombre, curso: r.curso, codigo: r.codigo, nota: r.nota,
-        estado: r.ok ? "Confirmar" : "Revisar",
-        marcaFondo: r.ok ? "#DDE4DC" : "#F2E1DB",
-        marcaTinta: r.ok ? "#1D4B43" : "#A65543",
-        setNota: (e) => {
-          const val = Number(e.target.value);
-          this.setState((st) => ({
-            lectura: st.lectura.map((x, j) => (j === i ? { ...x, nota: val, ok: true } : x))
-          }));
-        },
-        quitar: () => this.setState((st) => ({ lectura: st.lectura.filter((_, j) => j !== i) }))
-      })),
+      lectura: s.lectura.map((r) => {
+        const m = marcaLectura(r);
+        return {
+          nombre: r.nombre, nota: r.nota, estado: m.estado, marcaFondo: m.fondo, marcaTinta: m.tinta,
+          detalle: r.curso + " · n.º " + r.numero + " · forma " + r.forma + " · " + r.id_examen + " · columna " + r.columna,
+          motivo: m.motivo || "", motivoVer: m.motivo ? "block" : "none",
+          setNota: (e) => {
+            const t = e.target.value.trim(), val = t === "" ? "" : Number(t);
+            this.setState((st) => ({
+              lectura: st.lectura.map((x) => (x.clave === r.clave ? { ...x, nota: val, corregida: true, motivo: "", resultado: null } : x))
+            }));
+          },
+          quitar: () => this.setState((st) => ({ lectura: st.lectura.filter((x) => x.clave !== r.clave) }))
+        };
+      }),
       lecturaResumen: s.lectura.length + (s.lectura.length === 1 ? " hoja leída" : " hojas leídas"),
-      leerFotos: () => this.setState({ lectura: LECTURA_DEMO.slice() }),
-      descartarLectura: () => this.setState({ lectura: [] }),
-      confirmarLectura: () => {
-        if (s.lectura.some((r) => !r.ok)) return this.avisar("Revisa las notas marcadas en rojo.");
-        this.setState({ lectura: [] });
-        this.avisar("Notas confirmadas y enviadas al registro.");
-      },
-      abrirRegistro: () => this.avisar("Demo: abriendo el registro SABER."),
-
-      fotoUnaFondo: gU.fondo, fotoUnaTinta: gU.tinta,
-      fotoVariasFondo: gV.fondo, fotoVariasTinta: gV.tinta,
-      setFotoUna: () => this.setState({ foto: "una" }),
-      setFotoVarias: () => this.setState({ foto: "varias" })
+      leerTexto: s.leyendo || "Tomar o elegir fotos",
+      leerFotos: this.leerFotos,
+      descartarLectura: () => this.setState({ lectura: [], problemas: [], diag: [], verDiag: false }),
+      alternarDiag: () => this.setState({ verDiag: !s.verDiag }),
+      verDiag: s.verDiag && s.diag.length > 0,
+      diag: s.diag,
+      diagTexto: s.verDiag ? "Ocultar lo que vio el lector" : "Ver lo que vio el lector",
+      pasarTexto: s.pasando ? "Pasando…" : "Confirmar y pasar al registro",
+      confirmarLectura: this.confirmarLectura,
+      abrirRegistro: () => this.avisar("Demo: abriendo el registro SABER.")
     };
   }
 }

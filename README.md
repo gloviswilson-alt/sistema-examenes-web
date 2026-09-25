@@ -6,7 +6,8 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
 
 - **Panel** (`public/`): conectados la contraseña, Inicio, Ajustes, Crear examen (banco real, selector de
   columnas y guardado), impresión de las hojas y la lista de Exámenes con "Imprimir de nuevo" (mismas
-  formas; se elige a quién). Notas por foto sigue con datos de ejemplo.
+  formas; se elige a quién) y Notas por foto (lee las hojas en el celular, se confirman y se pasan
+  al registro con `pasar`). El botón "Registro" de la barra inferior sigue siendo de ejemplo.
 - **Backend** (`netlify/functions/panel/`): función de Netlify que reemplaza al Apps Script.
 
 ## Archivos
@@ -15,7 +16,9 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
 - `public/estilos.css`, `public/fuentes/`: fuentes y estilos base.
 - `public/vendor/`: React y `dc-runtime.js`, el motor que dibuja las pantallas. No se editan a mano.
 - `public/hoja.js`: geometría de la franja (QR + burbujas, en mm), generador de QR y armado de las hojas
-  para imprimir. La misma geometría la usará el lector de fotos.
+  para imprimir. La misma geometría la usa el lector de fotos.
+- `public/lector.js`: lector de fotos en el navegador (BarcodeDetector de Chrome para el QR; las
+  burbujas se leen con esa geometría). La foto nunca sale del celular.
 - `public/prueba.html`: prueba de conexión (solo lectura) del documento del sistema y los 4 registros.
 - `netlify/functions/panel/`: `panel.mjs` (entrada y contraseña), `operaciones.mjs` (las 7 operaciones),
   `sheets.mjs` (Google Sheets), `almacen.mjs` (ajustes y bloqueos en Netlify Blobs),
@@ -72,3 +75,11 @@ vacío, y bloquea cada registro mientras escribe (Netlify Blobs).
 Tamaño carta, escala 100 %, sin márgenes. La franja superior mide lo mismo que el QR (15,08 mm):
 QR + 44 burbujas (notas 2 a 45) en posiciones fijas en mm, tomadas de la geometría medida en papel
 (`G` y `RB` en `hoja.js`). El QR lleva `EX001-<carnet>-<n.º de lista><forma>` (versión 1, nivel M).
+
+## Notas por foto
+
+Cada foto (una hoja o varias en abanico) se lee en el celular: el QR ubica la hoja y se recorren los
+44 aros. Se acepta la nota solo si hay una burbuja claramente marcada; ante cualquier duda la fila
+queda en "Revisar" para escribir la nota a mano. Las hojas cuyo QR no coincide con el examen
+(carnet o forma) no se pasan. "Ver lo que vio el lector" muestra la foto con lo detectado.
+Al imprimir a un alumno excluido, deja de estar excluido (si no, `pasar` rechazaría su nota).

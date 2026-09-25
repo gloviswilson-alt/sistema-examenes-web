@@ -2,9 +2,10 @@
 // La impresión y el lector óptico usan estas mismas constantes: no se tocan por separado.
 (function () {
   // Milímetros desde la esquina superior izquierda del QR (geometría medida en papel).
-  // x0 y filas: centros de las burbujas; paso: distancia entre centros; aro: radio impreso.
+  // x0 y filas: centros de las burbujas; paso: distancia entre centros. RB: radios de lectura.
   const G = { lado: 15.08, x0: 18.73, paso: 5.93, filas: [5.82, 11.77], radioLectura: 1.2 };
   const RB = { aro: 2.25, fuera: 3.1 };
+  const DIAMETRO_BURBUJA = 5.14; // círculo impreso, igual que en el diseño de la hoja
   const NOTA_MIN = 2, NOTA_MAX = 45, POR_FILA = 22;
 
   // Centro (mm, desde la esquina del QR) de la burbuja de una nota.
@@ -154,28 +155,32 @@
   // ---- Hojas para imprimir (tamaño carta, escala exacta) ----
   const LINEAS = { sin: 0, "pequeño": 3, grande: 10 };
   const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  // El registro guarda los nombres en mayúsculas; en la hoja van como en el diseño: "Alpire Flores Maria Rene".
+  const PARTICULAS = ["de", "del", "la", "las", "los", "y"];
+  const nombrePropio = (t) => String(t || "").toLowerCase().split(/\s+/).filter(Boolean)
+    .map((w, i) => (i && PARTICULAS.includes(w) ? w : w.charAt(0).toUpperCase() + w.slice(1))).join(" ");
   const cursoCorto = (nivel, par) => (nivel === "Sexto" ? "6to " : "2do ") + par;
   const fechaCorta = (iso) => { const p = String(iso || "").split("-"); return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : String(iso || ""); };
 
   const CSS = `
 @page { size: letter; margin: 0 }
-* { box-sizing: border-box }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact }
 html, body { margin: 0; background: #fff }
 .pag { width: 215.9mm; height: 279.4mm; padding: 5mm 12.7mm 11.7mm; display: flex; flex-direction: column;
   color: #1B211E; font-family: Archivo, system-ui, sans-serif; break-after: page; overflow: hidden; position: relative }
 .pag:last-child { break-after: auto }
 .franja { position: relative; height: ${G.lado}mm; flex: none }
 .qr { position: absolute; left: 0; top: 0 }
-.uso { position: absolute; left: ${(G.x0 - RB.aro).toFixed(2)}mm; top: 0.3mm; font-size: 6px; letter-spacing: .22em; text-transform: uppercase; color: #98A099; white-space: nowrap }
-.bur { position: absolute; width: ${RB.aro * 2}mm; height: ${RB.aro * 2}mm; border: 0.26mm solid #5F6B64; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center; font-size: 9px; line-height: 1; color: #5F6B64; font-variant-numeric: tabular-nums }
+.uso { position: absolute; left: ${(G.x0 - DIAMETRO_BURBUJA / 2).toFixed(2)}mm; top: 0.3mm; font-size: 6px; letter-spacing: .22em; text-transform: uppercase; color: #98A099; white-space: nowrap }
+.bur { position: absolute; width: ${DIAMETRO_BURBUJA}mm; height: ${DIAMETRO_BURBUJA}mm; border: 0.26mm solid #5F6B64; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 10px; line-height: 1; color: #5F6B64; font-variant-numeric: tabular-nums }
 .nota { position: absolute; right: 0; top: 0; width: 31.75mm; height: 34.29mm; background: #F0EDE4; border-radius: 2px;
   display: flex; align-items: flex-end; justify-content: space-between; padding: 6px 9px }
 .nota b { font-size: 8.5px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: #17362F }
 .nota span { font-size: 7.5px; color: #5F6B64 }
-.titulo { margin-top: 5.3mm; padding: 0 36mm 7px 0; border-bottom: 3px solid #17362F }
+.titulo { margin-top: 4mm; padding: 0 36mm 7px 0; border-bottom: 3px solid #17362F }
 .kicker { font-size: 8px; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; color: #B08344; display: block; padding-top: 6px }
-.nombre-ex { font-family: 'Instrument Serif', Georgia, serif; font-size: 50px; line-height: 1; color: #17362F; letter-spacing: -.012em }
+.nombre-ex { font-family: 'Instrument Serif', Georgia, serif; font-size: 46px; line-height: 1; color: #17362F; letter-spacing: -.012em }
 .alumno { display: flex; justify-content: space-between; align-items: baseline; gap: 22px; padding: 7px 0 8px; border-bottom: 2.5px solid #A89C82 }
 .alumno.cont { padding: 0 0 9px; border-bottom: 3px solid #17362F }
 .alumno .n { font-family: 'Instrument Serif', Georgia, serif; font-size: 21px; line-height: 1.15 }
@@ -193,8 +198,8 @@ html, body { margin: 0; background: #fff }
 .op i { width: 18px; height: 18px; flex: none; border: 1px solid #DED7C7; border-radius: 50%; display: flex; align-items: center;
   justify-content: center; font-style: normal; font-size: 8.5px; font-weight: 500; color: #5F6B64; margin-top: 1px }
 .op span { font-family: Spectral, Georgia, serif; font-size: 14px; line-height: 1.4 }
-.lineas { display: flex; flex-direction: column; gap: 13px; margin-top: 13px }
-.lineas div { border-bottom: .75px solid #DED7C7; height: 15px }
+.lineas { display: flex; flex-direction: column; gap: 12px; margin-top: 12px }
+.lineas div { border-bottom: 0.3mm solid #BDB6A6; height: 15px }
 .pie { margin-top: auto; padding-top: 12px; border-top: 1px solid #DED7C7; display: flex; justify-content: space-between; align-items: baseline; flex: none }
 .pie span { font-size: 7.5px; font-weight: 500; white-space: nowrap; letter-spacing: .2em; text-transform: uppercase; color: #5F6B64 }`;
 
@@ -202,7 +207,8 @@ html, body { margin: 0; background: #fff }
     let h = '<div class="franja"><div class="qr">' + svgQR(qrTexto, G.lado) + '</div><span class="uso">Uso exclusivo del profesor</span>';
     for (let n = NOTA_MIN; n <= NOTA_MAX; n++) {
       const b = burbuja(n);
-      h += '<span class="bur" style="left:' + (b.x - RB.aro).toFixed(2) + "mm;top:" + (b.y - RB.aro).toFixed(2) + 'mm">' + n + "</span>";
+      const r = DIAMETRO_BURBUJA / 2;
+      h += '<span class="bur" style="left:' + (b.x - r).toFixed(2) + "mm;top:" + (b.y - r).toFixed(2) + 'mm">' + n + "</span>";
     }
     return h + '<div class="nota"><b>Nota</b><span>/45</span></div></div>';
   }
@@ -232,14 +238,14 @@ html, body { margin: 0; background: #fff }
       const kicker = "U.E. Niño Jesús II · Matemática · " + cursoCorto(d.nivel, a.par) + " · " + esc(d.trimestre);
       const paginas = [pagina(franja(textoQR(d.id, a.carnet, a.numero, forma)) +
         '<div class="titulo"><span class="kicker">' + kicker + '</span><div class="nombre-ex">' + esc(d.nombre) + "</div></div>" +
-        '<div class="alumno"><div class="n">' + esc(a.nombre) + '</div><span class="meta">C.I. ' + esc(a.carnet) + " &nbsp;·&nbsp; N.º " + a.numero + " &nbsp;·&nbsp; " + fecha + "</span></div>" +
+        '<div class="alumno"><div class="n">' + esc(nombrePropio(a.nombre)) + '</div><span class="meta">C.I. ' + esc(a.carnet) + " &nbsp;·&nbsp; N.º " + a.numero + " &nbsp;·&nbsp; " + fecha + "</span></div>" +
         '<div class="cuerpo"></div>' + pie)];
       d.preguntas.forEach((p, i) => {
         let dest = paginas.at(-1).querySelector(".cuerpo");
         dest.insertAdjacentHTML("beforeend", bloquePregunta(i + 1, p, forma));
         if (dest.scrollHeight > dest.clientHeight + 1 && dest.children.length > 1) {
           const bloque = dest.lastElementChild;
-          const nueva = pagina('<div class="alumno cont"><div class="n">' + esc(a.nombre) + '</div><span class="meta">N.º ' + a.numero + " &nbsp;·&nbsp; " + fechaCorta(d.fecha) + "</span></div>" +
+          const nueva = pagina('<div class="alumno cont"><div class="n">' + esc(nombrePropio(a.nombre)) + '</div><span class="meta">N.º ' + a.numero + " &nbsp;·&nbsp; " + fechaCorta(d.fecha) + "</span></div>" +
             '<div class="cuerpo"></div>' + pie);
           paginas.push(nueva);
           dest = nueva.querySelector(".cuerpo");
@@ -277,5 +283,5 @@ html, body { margin: 0; background: #fff }
     return doc.querySelectorAll(".pag").length;
   }
 
-  window.Hoja = { G, RB, NOTA_MIN, NOTA_MAX, burbuja, textoQR, matrizQR, svgQR, armar, imprimir, CSS };
+  window.Hoja = { G, RB, DIAMETRO_BURBUJA, NOTA_MIN, NOTA_MAX, burbuja, textoQR, matrizQR, svgQR, armar, imprimir, CSS };
 })();

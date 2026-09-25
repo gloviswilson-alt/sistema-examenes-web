@@ -650,15 +650,16 @@ class Component extends DCLogic {
 
   cargar = async () => {
     this.setState({ cargando: true });
-    try {
-      const [est, aj] = await Promise.all([this.llamar("estado"), this.llamar("ajuste")]);
-      const ajustes = { ...AJUSTES_BASE, ...(aj.trimestre ? { trimestre: aj.trimestre } : {}), ...(aj.profesor ? { profesor: aj.profesor } : {}) };
-      this.setState({ ultimo: est.ultimo, ajustes, ajTrimestre: ajustes.trimestre, ajProfesor: ajustes.profesor });
-    } catch (e) {
-      if (this.state.clave) this.avisar(e.message);
-    } finally {
-      this.setState({ cargando: false });
+    // Estado y ajustes se piden por separado: si uno falla, el otro igual se muestra.
+    const [est, aj] = await Promise.allSettled([this.llamar("estado"), this.llamar("ajuste")]);
+    if (est.status === "fulfilled") this.setState({ ultimo: est.value.ultimo });
+    if (aj.status === "fulfilled") {
+      const ajustes = { ...AJUSTES_BASE, ...(aj.value.trimestre ? { trimestre: aj.value.trimestre } : {}), ...(aj.value.profesor ? { profesor: aj.value.profesor } : {}) };
+      this.setState({ ajustes, ajTrimestre: ajustes.trimestre, ajProfesor: ajustes.profesor });
     }
+    const fallo = [est, aj].find((x) => x.status === "rejected");
+    if (fallo && this.state.clave) this.avisar(fallo.reason.message);
+    this.setState({ cargando: false });
   };
 
   entrar = async () => {

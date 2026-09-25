@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- El panel tiene sus propios colores: se pide al navegador que no lo oscurezca por su cuenta. -->
+<meta name="color-scheme" content="only light">
+<style>:root { color-scheme: only light; }</style>
 <title>Sistema de Exámenes</title>
 <link rel="stylesheet" href="estilos.css">
 <script>window.__resources = {"https://unpkg.com/react@18.3.1/umd/react.production.min.js": "vendor/react.production.min.js", "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js": "vendor/react-dom.production.min.js"};</script>
@@ -382,15 +385,17 @@
             <div style="font-size:12.5px;color:#9AA69F;text-align:right">{{ lecturaResumen }}</div>
           </div>
           <sc-for list="{{ lectura }}" as="r" hint-placeholder-count="5">
-            <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:11px;align-items:center;padding:11px 22px;border-top:1px solid #E2DACB">
-              <span>
+            <div style="display:flex;flex-wrap:wrap;gap:8px 11px;align-items:center;padding:11px 22px;border-top:1px solid #E2DACB">
+              <span style="flex:1 1 220px;min-width:0">
                 <span style="display:block;font-size:14.5px">{{ r.nombre }}</span>
                 <span style="display:block;font-size:12px;color:#9AA69F;margin-top:1px">{{ r.detalle }}</span>
                 <span style="display:{{ r.motivoVer }};font-size:12px;color:{{ r.marcaTinta }};margin-top:2px">{{ r.motivo }}</span>
               </span>
-              <span style="padding:3px 10px;border-radius:20px;font-size:10px;text-transform:uppercase;letter-spacing:0.09em;font-weight:500;background:{{ r.marcaFondo }};color:{{ r.marcaTinta }}">{{ r.estado }}</span>
-              <input type="number" min="2" max="45" value="{{ r.nota }}" sc-camel-on-change="{{ r.setNota }}" style="width:62px;text-align:center;border:1.5px solid #E2DACB;border-radius:12px;padding:7px 4px;font:inherit;font-size:14.5px;background:#fff">
-              <button sc-camel-on-click="{{ r.quitar }}" title="Descartar esta hoja" style="border:0;background:transparent;color:#9AA69F;font:inherit;font-size:16px;cursor:pointer;padding:4px 6px" style-hover="color:#A65543">×</button>
+              <span style="display:flex;align-items:center;gap:11px;margin-left:auto">
+                <span style="padding:3px 10px;border-radius:20px;font-size:10px;text-transform:uppercase;letter-spacing:0.09em;font-weight:500;background:{{ r.marcaFondo }};color:{{ r.marcaTinta }}">{{ r.estado }}</span>
+                <input type="number" min="2" max="45" value="{{ r.nota }}" sc-camel-on-change="{{ r.setNota }}" style="width:62px;text-align:center;border:1.5px solid #E2DACB;border-radius:12px;padding:7px 4px;font:inherit;font-size:14.5px;background:#fff">
+                <button sc-camel-on-click="{{ r.quitar }}" title="Descartar esta hoja" style="border:0;background:transparent;color:#9AA69F;font:inherit;font-size:16px;cursor:pointer;padding:4px 6px" style-hover="color:#A65543">×</button>
+              </span>
             </div>
           </sc-for>
           <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding:15px 22px 0;border-top:1px solid #E2DACB;margin-top:11px">

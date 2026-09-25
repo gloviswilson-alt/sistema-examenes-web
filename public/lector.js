@@ -187,13 +187,34 @@
     return c;
   }
 
+  // El detector de Android reduce la foto antes de buscar: en un abanico grande algunos QR le quedan
+  // chicos. Por eso se busca en la foto entera y además en 9 recortes superpuestos (mitad del ancho y
+  // del alto, cada un cuarto); las esquinas se devuelven a la foto entera.
+  async function detectarQR(canvas) {
+    const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+    const codigos = await detector.detect(canvas);
+    const W = canvas.width, H = canvas.height, w = Math.round(W / 2), h = Math.round(H / 2);
+    const recorte = document.createElement("canvas");
+    recorte.width = w; recorte.height = h;
+    const ctx = recorte.getContext("2d");
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+      const x0 = Math.round((i * W) / 4), y0 = Math.round((j * H) / 4);
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(canvas, x0, y0, w, h, 0, 0, w, h);
+      for (const c of await detector.detect(recorte)) {
+        if (codigos.some((x) => x.rawValue === c.rawValue)) continue;
+        codigos.push({ rawValue: c.rawValue, cornerPoints: c.cornerPoints.map((p) => ({ x: p.x + x0, y: p.y + y0 })) });
+      }
+    }
+    return codigos;
+  }
+
   // Lee todas las hojas de una foto (archivo o canvas). Devuelve [{ qr, nota | motivo, esquinas, puntos }].
   async function leerFoto(fuente) {
     if (!("BarcodeDetector" in window)) throw new Error("Este navegador no puede leer QR. Usa Chrome en Android.");
     const canvas = fuente instanceof HTMLCanvasElement ? fuente : await aCanvas(fuente);
     const im = grises(canvas);
-    const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
-    const codigos = await detector.detect(canvas);
+    const codigos = await detectarQR(canvas);
     const vistos = new Set();
     const hojas = [];
     for (const c of codigos) {
@@ -218,7 +239,16 @@
     for (const h of hojas) {
       const ok = h.nota !== undefined;
       ctx.strokeStyle = ok ? "#1f9d55" : "#d64545";
-      if (h.esquinas) { ctx.beginPath(); h.esquinas.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y))); ctx.closePath(); ctx.stroke(); }
+      if (h.esquinas) {
+        ctx.beginPath(); h.esquinas.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y))); ctx.closePath(); ctx.stroke();
+        // La nota leída (o "?") en grande sobre el QR, para verla de un vistazo en el celular.
+        const cx = h.esquinas.reduce((a, p) => a + p.x, 0) / 4, cy = h.esquinas.reduce((a, p) => a + p.y, 0) / 4;
+        const lado = Math.hypot(h.esquinas[1].x - h.esquinas[0].x, h.esquinas[1].y - h.esquinas[0].y);
+        const t = ok ? String(h.nota) : "?";
+        ctx.font = "bold " + Math.round(lado * 0.6) + "px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillStyle = ctx.strokeStyle; ctx.fillRect(cx - lado * 0.5, cy - lado * 0.4, lado, lado * 0.8);
+        ctx.fillStyle = "#fff"; ctx.fillText(t, cx, cy);
+      }
       (h.puntos || []).forEach(([x, y], i) => {
         ctx.beginPath(); ctx.arc(x, y, ctx.lineWidth * 3, 0, 2 * Math.PI);
         ctx.fillStyle = ok && i + NOTA_MIN === h.nota ? "#1f9d55" : "rgba(214,69,69,.55)"; ctx.fill();

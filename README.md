@@ -81,5 +81,7 @@ QR + 44 burbujas (notas 2 a 45) en posiciones fijas en mm, tomadas de la geometr
 Cada foto (una hoja o varias en abanico) se lee en el celular: el QR ubica la hoja y se recorren los
 44 aros. Se acepta la nota solo si hay una burbuja claramente marcada; ante cualquier duda la fila
 queda en "Revisar" para escribir la nota a mano. Las hojas cuyo QR no coincide con el examen
-(carnet o forma) no se pasan. "Ver lo que vio el lector" muestra la foto con lo detectado.
+(carnet o forma) no se pasan. "Ver lo que vio el lector" muestra la foto con lo detectado y la nota
+leída (o "?") sobre cada QR. Los QR se buscan en la foto entera y en 9 recortes superpuestos, porque
+el detector de Android no siempre ve todos los de un abanico grande.
 Al imprimir a un alumno excluido, deja de estar excluido (si no, `pasar` rechazaría su nota).

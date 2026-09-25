@@ -157,27 +157,32 @@
           </div>
         </div>
 
+        <!-- Ejercicios del tema: ventana encima de todo; la lista se desplaza por dentro y los botones quedan fijos. -->
         <sc-if value="{{ eligiendo }}" hint-placeholder-val="{{ false }}">
-          <div style="background:#FBF9F5;border-radius:22px;padding:18px 0 14px">
-            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:0 20px 12px">
-              <div style="font-family:Prata,Georgia,serif;font-size:19px;color:#1D4B43">{{ temaActual }}</div>
-              <div style="display:flex;align-items:center;gap:14px">
-                <button sc-camel-on-click="{{ todas }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:12px;padding:7px 13px;font:inherit;font-size:12.5px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">{{ todasTexto }}</button>
-                <span style="font-size:13px;color:#6E7B74">{{ cuenta }}</span>
+          <div style="position:fixed;inset:0;z-index:50;background:rgba(27,33,30,.55);display:flex;align-items:center;justify-content:center;padding:clamp(0px,3vw,28px)">
+            <div style="background:#FBF9F5;width:min(1180px,100%);max-height:100%;height:auto;display:flex;flex-direction:column;border-radius:clamp(0px,2.4vw,22px);box-shadow:0 24px 60px rgba(0,0,0,.28);overflow:hidden">
+              <div style="flex:none;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px 14px;padding:16px 20px;border-bottom:1px solid #E2DACB">
+                <div style="font-family:Prata,Georgia,serif;font-size:19px;color:#1D4B43">{{ temaActual }}</div>
+                <div style="display:flex;align-items:center;gap:14px">
+                  <span style="font-size:13px;color:#6E7B74">{{ cuenta }}</span>
+                  <button sc-camel-on-click="{{ todas }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:12px;padding:7px 13px;font:inherit;font-size:12.5px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">{{ todasTexto }}</button>
+                </div>
               </div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1px;background:#E2DACB;border-top:1px solid #E2DACB">
-              <sc-for list="{{ banco }}" as="e" hint-placeholder-count="6">
-                <button sc-camel-on-click="{{ e.toggle }}" style="text-align:left;display:flex;align-items:flex-start;gap:11px;padding:13px 16px;border:0;background:{{ e.fondoPleno }};font:inherit;cursor:pointer">
-                  <span style="width:21px;height:21px;border-radius:7px;border:1.5px solid {{ e.marcoBorde }};background:{{ e.marcoFondo }};flex:none;margin-top:2px;display:flex;align-items:center;justify-content:center;color:#FBF9F5;font-size:12px;line-height:1">{{ e.tick }}</span>
-                  <span style="font-family:Prata,serif;font-size:14px;color:#9AA69F;min-width:22px">{{ e.num }}</span>
-                  <span style="font-size:14px;line-height:1.5">{{ e.txt }}</span>
-                </button>
-              </sc-for>
-            </div>
-            <div style="display:flex;justify-content:flex-end;gap:10px;padding:14px 20px 0">
-              <button sc-camel-on-click="{{ cancelar }}" style="border:0;background:transparent;color:#6E7B74;font:inherit;font-size:13.5px;text-decoration:underline;text-underline-offset:4px;cursor:pointer">Cancelar</button>
-              <button sc-camel-on-click="{{ confirmar }}" style="border:0;background:#1D4B43;color:#FBF9F5;border-radius:16px;padding:11px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#153931">Agregar seleccionados</button>
+              <div style="flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain">
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1px;background:#E2DACB">
+                  <sc-for list="{{ banco }}" as="e" hint-placeholder-count="6">
+                    <button sc-camel-on-click="{{ e.toggle }}" style="text-align:left;display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border:0;background:{{ e.fondoPleno }};font:inherit;cursor:pointer">
+                      <span style="width:20px;height:20px;border-radius:7px;border:1.5px solid {{ e.marcoBorde }};background:{{ e.marcoFondo }};flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;color:#FBF9F5;font-size:12px;line-height:1">{{ e.tick }}</span>
+                      <span style="font-family:Prata,serif;font-size:13px;color:#9AA69F;min-width:22px">{{ e.num }}</span>
+                      <span style="font-size:13.5px;line-height:1.45">{{ e.txt }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="flex:none;display:flex;justify-content:flex-end;align-items:center;gap:14px;padding:13px 20px;border-top:1px solid #E2DACB;background:#FBF9F5">
+                <button sc-camel-on-click="{{ cancelar }}" style="border:0;background:transparent;color:#6E7B74;font:inherit;font-size:13.5px;text-decoration:underline;text-underline-offset:4px;cursor:pointer">Cancelar</button>
+                <button sc-camel-on-click="{{ confirmar }}" style="border:0;background:#1D4B43;color:#FBF9F5;border-radius:16px;padding:11px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#153931">{{ agregarTexto }}</button>
+              </div>
             </div>
           </div>
         </sc-if>
@@ -825,7 +830,7 @@ class Component extends DCLogic {
       if (e.target.closest && e.target.closest("[data-cal]")) return;
       this.setState({ calAbierto: false });
     };
-    this._esc = (e) => { if (e.key === "Escape") this.setState({ calAbierto: false }); };
+    this._esc = (e) => { if (e.key === "Escape") this.setState({ calAbierto: false, tema: null, sel: [] }); };
     document.addEventListener("click", this._fuera, true);
     document.addEventListener("keydown", this._esc);
   }
@@ -1052,7 +1057,6 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
           txt: q.formas.A.enunciado + (q.tipo === "teorica" ? " (teórica)" : ""),
           num: i + 1 + ".", tick: on ? "✓" : "",
           fondoPleno: on ? "#F1EDE3" : "#FBF9F5",
-          fondo: on ? "#F1EDE3" : "transparent",
           marcoFondo: on ? "#1D4B43" : "transparent",
           marcoBorde: on ? "#1D4B43" : "#E2DACB",
           toggle: () => this.setState((st) => ({
@@ -1060,6 +1064,7 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
           }))
         };
       }),
+      agregarTexto: s.sel.length ? "Agregar " + s.sel.length + (s.sel.length === 1 ? " seleccionada" : " seleccionadas") : "Agregar seleccionadas",
       todasTexto: s.sel.length === bank.length && bank.length ? "Quitar todas" : "Seleccionar todas",
       todas: () => this.setState({ sel: s.sel.length === bank.length ? [] : bank.map((q) => q.codigo) }),
       cancelar: () => this.setState({ tema: null, sel: [] }),

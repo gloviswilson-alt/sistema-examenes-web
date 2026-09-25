@@ -14,12 +14,23 @@
 
   <div style="max-width:820px;margin:0 auto;padding:34px 22px 12px">
 
+    <!-- ENTRAR -->
+    <div style="display:{{ vEntrar }}">
+      <div style="max-width:380px;margin:12vh auto 0">
+        <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#93A89B;font-weight:500">Sistema de exámenes</div>
+        <h1 style="font-family:Prata,Georgia,serif;font-weight:400;font-size:34px;line-height:1.1;color:#1D4B43;margin:6px 0 18px">Entrar</h1>
+        <input type="password" value="{{ claveInput }}" sc-camel-on-change="{{ setClaveInput }}" sc-camel-on-key-down="{{ teclaClave }}" placeholder="Contraseña" autocomplete="current-password" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1.5px solid #E2DACB;border-radius:14px;background:#fff;font:inherit;font-size:16px;color:#22302C">
+        <button sc-camel-on-click="{{ entrar }}" style="width:100%;margin-top:12px;border:0;background:#1D4B43;color:#F1EDE3;border-radius:14px;padding:13px;font:inherit;font-size:15px;cursor:pointer" style-hover="background:#153931">{{ entrarTexto }}</button>
+        <div style="color:#A65543;font-size:13.5px;margin-top:10px;min-height:20px">{{ errorClave }}</div>
+      </div>
+    </div>
+
     <!-- INICIO -->
     <div style="display:{{ vInicio }}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:18px">
         <div>
-          <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#93A89B;font-weight:500">Tercer trimestre</div>
-          <h1 style="font-family:Prata,Georgia,serif;font-weight:400;font-size:38px;line-height:1.1;color:#1D4B43;margin:6px 0 0">Hola Glovis</h1>
+          <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#93A89B;font-weight:500">{{ trimestre }}</div>
+          <h1 style="font-family:Prata,Georgia,serif;font-weight:400;font-size:38px;line-height:1.1;color:#1D4B43;margin:6px 0 0">{{ saludo }}</h1>
           <div style="color:#6E7B74;font-size:14.5px;margin-top:4px">¿Listo para generar tus exámenes?</div>
         </div>
         <button sc-camel-on-click="{{ irAjustes }}" style="border:1.5px solid #E2DACB;background:#FBF9F5;color:#6E7B74;border-radius:14px;padding:9px 14px;font:inherit;font-size:13px;cursor:pointer;flex:none" style-hover="border-color:#1D4B43;color:#1D4B43">Ajustes</button>
@@ -46,11 +57,11 @@
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px">
           <div>
             <div style="color:#C99B52;font-size:11px;text-transform:uppercase;letter-spacing:0.13em;font-weight:500">Último examen generado</div>
-            <div style="font-family:Prata,Georgia,serif;font-size:25px;color:#1D4B43;margin-top:5px">La parábola y la elipse</div>
-            <div style="font-size:13.5px;color:#6E7B74;margin-top:2px">Sexto B · 17/09/2026 · columna D</div>
+            <div style="font-family:Prata,Georgia,serif;font-size:25px;color:#1D4B43;margin-top:5px">{{ ultTitulo }}</div>
+            <div style="font-size:13.5px;color:#6E7B74;margin-top:2px">{{ ultMeta }}</div>
           </div>
-          <div style="text-align:right;flex:none">
-            <div style="font-family:Prata,Georgia,serif;font-size:36px;color:#1D4B43;line-height:1;font-variant-numeric:tabular-nums">14</div>
+          <div style="text-align:right;flex:none;display:{{ ultNotasVis }}">
+            <div style="font-family:Prata,Georgia,serif;font-size:36px;color:#1D4B43;line-height:1;font-variant-numeric:tabular-nums">{{ ultNotas }}</div>
             <div style="font-size:12px;color:#9AA69F">notas en el registro</div>
           </div>
         </div>
@@ -424,12 +435,16 @@
       <div style="background:#FBF9F5;border-radius:24px;padding:20px 22px;margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px">
         <div>
           <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:0.13em;color:#9AA69F;font-weight:500;margin-bottom:6px">Trimestre</div>
-          <div style="font-size:15.5px;border-bottom:1.5px solid #E2DACB;padding-bottom:10px">Tercer trimestre</div>
+          <input type="text" value="{{ ajTrimestre }}" sc-camel-on-change="{{ setAjTrimestre }}" style="width:100%;box-sizing:border-box;font:inherit;font-size:15.5px;border:0;border-bottom:1.5px solid #E2DACB;background:transparent;padding:0 0 10px;color:#22302C">
         </div>
         <div>
           <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:0.13em;color:#9AA69F;font-weight:500;margin-bottom:6px">Nombre en los exámenes</div>
-          <div style="font-size:15.5px;border-bottom:1.5px solid #E2DACB;padding-bottom:10px">Prof. Glovis Sandoval Cabrera</div>
+          <input type="text" value="{{ ajProfesor }}" sc-camel-on-change="{{ setAjProfesor }}" style="width:100%;box-sizing:border-box;font:inherit;font-size:15.5px;border:0;border-bottom:1.5px solid #E2DACB;background:transparent;padding:0 0 10px;color:#22302C">
         </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px">
+        <button sc-camel-on-click="{{ salir }}" style="border:0;background:transparent;color:#A65543;font:inherit;font-size:13.5px;cursor:pointer;padding:0">Cerrar sesión</button>
+        <button sc-camel-on-click="{{ guardarAjustes }}" style="border:0;background:#1D4B43;color:#F1EDE3;border-radius:14px;padding:10px 18px;font:inherit;font-size:14px;cursor:pointer" style-hover="background:#153931">Guardar</button>
       </div>
     </div>
 
@@ -440,7 +455,7 @@
     <div style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#22302C;color:#fff;padding:11px 18px;border-radius:14px;font-size:13.5px;z-index:60;max-width:90vw">{{ aviso }}</div>
   </sc-if>
 
-  <div style="position:fixed;left:0;right:0;bottom:0;background:#FBF9F5;border-top:1px solid #E2DACB;z-index:20">
+  <div style="position:fixed;left:0;right:0;bottom:0;background:#FBF9F5;border-top:1px solid #E2DACB;z-index:20;display:{{ vNav }}">
     <div style="max-width:820px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);padding:9px 16px 12px">
       <button sc-camel-on-click="{{ irInicio }}" style="border:0;background:transparent;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:{{ navInicio }}">
         <svg sc-camel-view-box="0 0 24 24" style="width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><path d="M4 11l8-7 8 7v9H4z"></path><path d="M10 20v-5h4v5"></path></svg>
@@ -585,9 +600,22 @@ const LECTURA_DEMO = [
   { nombre: "Gutiérrez Paz, Marco", curso: "Sexto A", codigo: "6B-06-B", nota: 40, ok: true }
 ];
 
+// Backend: función de Netlify del mismo sitio.
+const API = "/.netlify/functions/panel";
+const AJUSTES_BASE = { trimestre: "Tercer trimestre", profesor: "Prof. Glovis Sandoval Cabrera" };
+// La contraseña se recuerda en este dispositivo; si el navegador no deja guardarla, se pide cada vez.
+const CLAVE_KEY = "panel-clave";
+const leerClave = () => { try { return localStorage.getItem(CLAVE_KEY) || ""; } catch { return ""; } };
+const guardarClave = (c) => { try { c ? localStorage.setItem(CLAVE_KEY, c) : localStorage.removeItem(CLAVE_KEY); } catch {} };
+const fechaCorta = (iso) => { const p = String(iso || "").split("-"); return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : String(iso || ""); };
+const nombreDe = (profesor) => String(profesor || "").replace(/^prof(\.|esor|esora)?\s*/i, "").split(" ")[0];
+
 class Component extends DCLogic {
   state = {
-    vista: "inicio", curso: "Sexto A",
+    clave: leerClave(), claveInput: "", errorClave: "", entrando: false,
+    ajustes: AJUSTES_BASE, ajTrimestre: AJUSTES_BASE.trimestre, ajProfesor: AJUSTES_BASE.profesor,
+    ultimo: null, cargando: false,
+    vista: leerClave() ? "inicio" : "entrar", curso: "Sexto A",
     tipo: "Selección múltiple", minutos: 40,
     fecha: "2026-09-17", calAbierto: false, calMes: 8, calAnio: 2026,
     tema: null, temaOtro: "", sel: [], hoja: null,
@@ -599,7 +627,75 @@ class Component extends DCLogic {
 
   ir = (vista) => () => this.setState({ vista, colHover: null, calAbierto: false });
 
+  // Llama a una operación del backend. Si la contraseña ya no es válida, vuelve a pedirla.
+  llamar = async (operacion, datos = {}, clave = this.state.clave) => {
+    let res, r;
+    try {
+      res = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accion: "panel", clave, operacion, ...datos })
+      });
+      r = await res.json();
+    } catch {
+      throw new Error("No hay conexión con el servidor.");
+    }
+    if (res.status === 401) {
+      guardarClave("");
+      this.setState({ clave: "", vista: "entrar", errorClave: "Contraseña incorrecta." });
+    }
+    if (!r.ok) throw new Error(r.error || "Error del servidor.");
+    return r;
+  };
+
+  cargar = async () => {
+    this.setState({ cargando: true });
+    try {
+      const [est, aj] = await Promise.all([this.llamar("estado"), this.llamar("ajuste")]);
+      const ajustes = { ...AJUSTES_BASE, ...(aj.trimestre ? { trimestre: aj.trimestre } : {}), ...(aj.profesor ? { profesor: aj.profesor } : {}) };
+      this.setState({ ultimo: est.ultimo, ajustes, ajTrimestre: ajustes.trimestre, ajProfesor: ajustes.profesor });
+    } catch (e) {
+      if (this.state.clave) this.avisar(e.message);
+    } finally {
+      this.setState({ cargando: false });
+    }
+  };
+
+  entrar = async () => {
+    const clave = this.state.claveInput;
+    if (!clave || this.state.entrando) return;
+    this.setState({ entrando: true, errorClave: "" });
+    try {
+      await this.llamar("estado", {}, clave);
+      guardarClave(clave);
+      this.setState({ clave, claveInput: "", vista: "inicio" });
+      this.cargar();
+    } catch (e) {
+      this.setState({ errorClave: e.message });
+    } finally {
+      this.setState({ entrando: false });
+    }
+  };
+
+  salir = () => {
+    guardarClave("");
+    this.setState({ clave: "", vista: "entrar", ultimo: null });
+  };
+
+  guardarAjustes = async () => {
+    const trimestre = this.state.ajTrimestre.trim(), profesor = this.state.ajProfesor.trim();
+    if (!trimestre || !profesor) return this.avisar("Completa el trimestre y el nombre.");
+    try {
+      const aj = await this.llamar("ajuste", { trimestre, profesor });
+      this.setState({ ajustes: { ...AJUSTES_BASE, ...aj } });
+      this.avisar("Ajustes guardados.");
+    } catch (e) {
+      this.avisar(e.message);
+    }
+  };
+
   componentDidMount() {
+    if (this.state.clave) this.cargar();
     this._fuera = (e) => {
       if (!this.state.calAbierto) return;
       if (e.target.closest && e.target.closest("[data-cal]")) return;
@@ -640,6 +736,7 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state;
     const v = (n) => (s.vista === n ? "block" : "none");
+    const u = s.ultimo;
     const nav = (n) => (s.vista === n ? "#1D4B43" : "#9AA69F");
     const BK = NIVEL(s.curso);
     const gU = this.pick(s.foto === "una"), gV = this.pick(s.foto === "varias");
@@ -667,6 +764,23 @@ class Component extends DCLogic {
     const alumnos = Math.max(0, (porCurso[s.imprCurso] || 26) - s.imprFuera.length);
 
     return {
+      vEntrar: v("entrar"), vNav: s.vista === "entrar" ? "none" : "block",
+      claveInput: s.claveInput, errorClave: s.errorClave,
+      entrarTexto: s.entrando ? "Entrando…" : "Entrar",
+      setClaveInput: (e) => this.setState({ claveInput: e.target.value }),
+      teclaClave: (e) => { if (e.key === "Enter") this.entrar(); },
+      entrar: this.entrar, salir: this.salir, guardarAjustes: this.guardarAjustes,
+      ajTrimestre: s.ajTrimestre, ajProfesor: s.ajProfesor,
+      setAjTrimestre: (e) => this.setState({ ajTrimestre: e.target.value }),
+      setAjProfesor: (e) => this.setState({ ajProfesor: e.target.value }),
+      trimestre: s.ajustes.trimestre,
+      saludo: "Hola " + nombreDe(s.ajustes.profesor),
+      ultTitulo: s.cargando && !u ? "Cargando…" : u ? u.tema : "Todavía no hay exámenes",
+      ultMeta: u
+        ? u.nivel + " " + u.paralelos.join(" y ") + " · " + fechaCorta(u.fecha) + " · columna " + u.columna_registro
+        : s.cargando ? "" : "Crea el primero con «Crear examen».",
+      ultNotas: u ? u.notas_pasadas : "", ultNotasVis: u ? "block" : "none",
+
       vInicio: v("inicio"), vCrear: v("crear"), vExamenes: v("examenes"),
       vDetalle: v("detalle"), vFotos: v("fotos"), vAjustes: v("ajustes"),
       navInicio: nav("inicio"), navCrear: nav("crear"), navExamenes: nav("examenes"), navFotos: nav("fotos"),

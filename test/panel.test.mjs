@@ -94,7 +94,8 @@ function escenario({ ocupado } = {}) {
         ...familia('T12-F01', 'Sexto', 'La parábola', (f) => `Vértice ${f}`),
         ...familia('T12-F02', 'Sexto', 'La parábola', (f) => `Foco ${f}`, 'DCBA'),
         ...familia('T15-F01', 'Sexto', 'La elipse', (f) => `Eje ${f}`),
-        ...familia('T12-F03', 'Sexto', 'La parábola', () => 'Siempre igual', 'AAAA'),
+        ...familia('T12-F03', 'Sexto', 'La parábola', () => 'Siempre igual', 'ABCD'),
+        ...familia('T12-F04', 'Sexto', 'La parábola', () => 'Definición de parábola', 'CADB').map((r) => { r[5] = 'teorica'; return r; }),
         ...familia('S01-F01', 'Segundo', 'Productos notables', (f) => `Binomio ${f}`)
       ],
       Alumnos: [
@@ -248,7 +249,7 @@ test('banco: signo de la clave al final del enunciado y familias iguales ocultas
   const { ops } = escenario();
   const b = await ops.banco({ nivel: 'sexto', tema: 'la parábola' });
   assert.deepEqual(b.temas, ['La parábola', 'La elipse']);
-  assert.deepEqual(b.preguntas.map((p) => p.codigo), ['T12-F01', 'T12-F02']); // T12-F03 oculta
+  assert.deepEqual(b.preguntas.map((p) => p.codigo), ['T12-F01', 'T12-F02', 'T12-F04']); // T12-F03 oculta; la teórica no
   const f1 = b.preguntas[0].formas;
   assert.deepEqual(['A', 'B', 'C', 'D'].map((f) => f1[f].enunciado), ['Vértice A.', 'Vértice B,', 'Vértice C:', 'Vértice D']);
   assert.equal(b.preguntas[1].formas.A.enunciado, 'Foco A'); // clave D: sin signo

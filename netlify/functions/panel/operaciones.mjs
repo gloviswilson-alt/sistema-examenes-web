@@ -140,9 +140,10 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
           solucion: f.solucion
         };
       }
-      // Una familia con sus 4 formas idénticas no sirve contra la copia: se oculta.
-      const utiles = [...preguntas.values()].filter((p) =>
-        new Set(Object.values(p.formas).map((f) => JSON.stringify([f.enunciado, f.opciones]))).size > 1);
+      // Una práctica con el mismo enunciado en sus 4 formas no sirve contra la copia: se oculta.
+      // (Las teóricas repiten el enunciado a propósito; cambian el orden de las opciones.)
+      const utiles = [...preguntas.values()].filter((p) => !igual(p.tipo, 'practica') ||
+        new Set(Object.values(p.formas).map((f) => texto(f.enunciado).replace(/[.,:]$/, ''))).size > 1);
       return { temas, preguntas: utiles };
     },
 

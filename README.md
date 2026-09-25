@@ -4,7 +4,8 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
 
 ## Estado
 
-- **Panel** (`public/`): prototipo visual; los datos son de ejemplo y todavía no llama al backend.
+- **Panel** (`public/`): conectados la contraseña, Inicio, Ajustes y Crear examen (banco real, selector de
+  columnas y guardado). Exámenes, detalle y Notas por foto siguen con datos de ejemplo; falta imprimir.
 - **Backend** (`netlify/functions/panel/`): función de Netlify que reemplaza al Apps Script.
 
 ## Archivos
@@ -40,9 +41,12 @@ Respuesta: `{ "ok": true, ... }` o `{ "ok": false, "error": "..." }`.
 | `banco` | `nivel`, `tema?` | `temas`, `preguntas` (por `codigo`, con sus `formas`; el enunciado ya trae el signo de la clave; se ocultan las familias con 4 formas iguales) |
 | `guardar` | `fecha, nivel, paralelos[], tema, duracion?, columna_registro, preguntas[{codigo, puntaje, espacio}], excluidos[]?` | `id_examen` (`EX001`…), `asignacion` (carnet → forma) |
 | `cambiar` | `id_examen`, `columna_registro?`, `excluidos[]?` | lo cambiado |
-| `notas` | `nivel`, `paralelo` | `columnas` I–R: encabezado, cuántas notas y su promedio, y qué exámenes la usan (con fecha) |
+| `notas` | `nivel`, `paralelo` | `alumnos` del curso y `columnas` I–R: encabezado, cuántas notas y su promedio, y qué exámenes la usan (con fecha) |
 | `pasar` | `id_examen`, `notas[{carnet, nota}]` (nota entera de 2 a 45) | `escritas` y `resultados` por alumno (`escrita`, `ocupada`, `rechazada`, `no escrita`) |
 | `ajuste` | `trimestre?`, `profesor?` (sin datos solo lee) | ajustes guardados |
+
+En el selector del panel, una columna está ocupada si tiene notas o si ya está asignada a otro
+examen de ese paralelo (así dos exámenes pendientes no comparten columna).
 
 Reglas de `guardar`: de 3 a 10 preguntas, puntajes que suman 45, `espacio` = `sin`, `pequeño`
 o `grande`, y cada familia con sus 4 formas. Las formas se reparten en partes iguales y se

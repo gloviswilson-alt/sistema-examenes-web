@@ -235,6 +235,8 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
         igual(e.nivel, nivel) && listaComas(e.paralelos).some((p) => igual(p, paralelo)));
       return {
         curso,
+        alumnos: del_curso.map((a) => ({ numero: Number(a.numero), nombre: texto(a.nombre), carnet: normCarnet(a.carnet) }))
+          .sort((a, b) => a.numero - b.numero),
         columnas: COLUMNAS_SABER.map((letra, i) => ({
           letra,
           encabezado: texto(encabezados[i]),

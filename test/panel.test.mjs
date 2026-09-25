@@ -265,6 +265,8 @@ test('estado, notas (con fecha y promedio) y ajuste', async () => {
   const k = n.columnas.find((c) => c.letra === 'K');
   const l = n.columnas.find((c) => c.letra === 'L');
   assert.equal(n.curso, '6B');
+  assert.deepEqual(n.alumnos.map((a) => [a.numero, a.nombre, a.carnet]).slice(0, 2), [[1, 'Ana', 'C1'], [2, 'Beto', 'C2']]);
+  assert.equal(n.alumnos.length, 5);
   assert.equal(k.notas, 2);        // nota 30 + fórmula
   assert.equal(k.promedio, 30);    // la fórmula no cuenta para el promedio
   assert.deepEqual(k.examenes, [{ id_examen: 'EX002', tema: 'La parábola y la elipse', fecha: '2026-09-17' }]);

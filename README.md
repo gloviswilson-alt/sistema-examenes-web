@@ -4,8 +4,8 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
 
 ## Estado
 
-- **Panel** (`public/`): conectados la contraseña, Inicio, Ajustes y Crear examen (banco real, selector de
-  columnas y guardado). Exámenes, detalle y Notas por foto siguen con datos de ejemplo; falta imprimir.
+- **Panel** (`public/`): conectados la contraseña, Inicio, Ajustes, Crear examen (banco real, selector de
+  columnas y guardado) e impresión de las hojas. Exámenes, detalle y Notas por foto siguen con datos de ejemplo.
 - **Backend** (`netlify/functions/panel/`): función de Netlify que reemplaza al Apps Script.
 
 ## Archivos
@@ -13,6 +13,8 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
 - `public/index.html`: pantallas del panel (dentro de `<x-dc>`) y su lógica (script `text/x-dc` al final).
 - `public/estilos.css`, `public/fuentes/`: fuentes y estilos base.
 - `public/vendor/`: React y `dc-runtime.js`, el motor que dibuja las pantallas. No se editan a mano.
+- `public/hoja.js`: geometría de la franja (QR + burbujas, en mm), generador de QR y armado de las hojas
+  para imprimir. La misma geometría la usará el lector de fotos.
 - `public/prueba.html`: prueba de conexión (solo lectura) del documento del sistema y los 4 registros.
 - `netlify/functions/panel/`: `panel.mjs` (entrada y contraseña), `operaciones.mjs` (las 7 operaciones),
   `sheets.mjs` (Google Sheets), `almacen.mjs` (ajustes y bloqueos en Netlify Blobs),
@@ -63,3 +65,9 @@ Ubica al alumno por su carnet en la columna G de `Filiación` (fila `8 + N`) y e
 `3er Trimestre`, fila `11 + N`, en la columna del examen (I a R). Nunca escribe en una celda
 con contenido (ni con fórmula), solo pone el nombre del examen si el encabezado (fila 2) está
 vacío, y bloquea cada registro mientras escribe (Netlify Blobs).
+
+## Hoja impresa
+
+Tamaño carta, escala 100 %, sin márgenes. La franja superior mide lo mismo que el QR (15,08 mm):
+QR + 44 burbujas (notas 2 a 45) en posiciones fijas en mm, tomadas de la geometría medida en papel
+(`G` y `RB` en `hoja.js`). El QR lleva `EX001-<carnet>-<n.º de lista><forma>` (versión 1, nivel M).

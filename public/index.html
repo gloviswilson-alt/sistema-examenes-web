@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="estilos.css">
 <script>window.__resources = {"https://unpkg.com/react@18.3.1/umd/react.production.min.js": "vendor/react.production.min.js", "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js": "vendor/react-dom.production.min.js"};</script>
 <script src="vendor/dc-runtime.js"></script>
+<script src="hoja.js" charset="utf-8"></script>
 </head>
 <body>
 <x-dc>
@@ -276,6 +277,25 @@
       </div>
     </div>
 
+    <!-- IMPRIMIR -->
+    <div style="display:{{ vImprimir }}">
+      <div style="background:#1D4B43;color:#F1EDE3;border-radius:26px;padding:24px 24px 22px">
+        <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#C5D3C8;font-weight:500">Examen guardado</div>
+        <div style="font-family:Prata,Georgia,serif;font-size:30px;line-height:1.15;margin-top:6px">{{ impTitulo }}</div>
+        <div style="font-size:13.5px;color:#C5D3C8;margin-top:4px">{{ impResumen }}</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+          <button sc-camel-on-click="{{ imprimirHojas }}" style="border:0;background:#C99B52;color:#3B2A0C;border-radius:16px;padding:12px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#BC8C43">{{ imprimirTexto }}</button>
+          <button sc-camel-on-click="{{ irInicio }}" style="border:1.5px solid #3C6B61;background:transparent;color:#F1EDE3;border-radius:16px;padding:12px 18px;font:inherit;font-size:14px;cursor:pointer" style-hover="background:#153931">Volver al inicio</button>
+        </div>
+      </div>
+      <div style="background:#FBF9F5;border-radius:22px;padding:18px 20px;margin-top:14px;font-size:13.5px;line-height:1.55;color:#22302C">
+        <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:0.13em;font-weight:500;color:#A65543;margin-bottom:8px">Antes de imprimir</div>
+        En la ventana de impresión elige <b>tamaño Carta</b>, <b>márgenes: Ninguno</b> y <b>escala 100 %</b> (predeterminada).
+        Nunca «Ajustar a la página»: si la hoja se achica o se agranda, el lector de fotos no encuentra las burbujas.
+        Para guardar un PDF, elige «Guardar como PDF» como impresora.
+      </div>
+    </div>
+
     <!-- EXÁMENES -->
     <div style="display:{{ vExamenes }}">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px">
@@ -527,7 +547,7 @@ class Component extends DCLogic {
     fecha: hoyBolivia(), calAbierto: false,
     calMes: Number(hoyBolivia().slice(5, 7)) - 1, calAnio: Number(hoyBolivia().slice(0, 4)),
     // bancos: por nivel ({ temas, preguntas } o { error }); registros: por curso "6A" ({ columnas, alumnos } o { error })
-    bancos: {}, registros: {},
+    bancos: {}, registros: {}, impresion: null, imprimiendo: false,
     tema: null, sel: [], hoja: [], nombre: "", guardando: false,
     formasAbiertas: false, col: null, colHover: null, colEdit: false,
     filtro: "Sexto A", foto: "varias", aviso: "", lectura: [], abierto: null,
@@ -570,9 +590,16 @@ class Component extends DCLogic {
         preguntas: s.hoja.map((h) => ({ codigo: h.codigo, puntaje: h.pts, espacio: h.esp })),
         excluidos: s.imprFuera
       });
+      const B = s.bancos[nivelDe(s.curso)], cc = this.columnasCurso();
+      const impresion = {
+        id: r.id_examen, nombre: v.nombre, fecha: s.fecha, duracion: s.minutos ? s.minutos + " min" : "",
+        nivel: nivelDe(s.curso), trimestre: s.ajustes.trimestre, profesor: s.ajustes.profesor, columna: v.col,
+        asignacion: r.asignacion,
+        alumnos: cc.alumnos.filter((a) => s.imprFuera.indexOf(a.carnet) < 0),
+        preguntas: s.hoja.map((h) => ({ puntaje: h.pts, espacio: h.esp, formas: B.preguntas.find((q) => q.codigo === h.codigo).formas }))
+      };
       // Los registros se vuelven a leer para que el globo del selector muestre el examen nuevo.
-      this.setState({ hoja: [], sel: [], tema: null, nombre: "", col: null, imprFuera: [], registros: {}, vista: "inicio" });
-      this.avisar("Examen " + r.id_examen + " guardado.");
+      this.setState({ impresion, hoja: [], sel: [], tema: null, nombre: "", col: null, imprFuera: [], registros: {}, vista: "imprimir" });
       this.cargar();
     } catch (e) {
       this.avisar(e.message);
@@ -646,6 +673,18 @@ class Component extends DCLogic {
       this.avisar("Ajustes guardados.");
     } catch (e) {
       this.avisar(e.message);
+    }
+  };
+
+  imprimirHojas = async () => {
+    if (this.state.imprimiendo) return;
+    this.setState({ imprimiendo: true });
+    try {
+      await window.Hoja.imprimir(this.state.impresion);
+    } catch (e) {
+      this.avisar("No se pudo preparar la impresión: " + e.message);
+    } finally {
+      this.setState({ imprimiendo: false });
     }
   };
 
@@ -793,6 +832,12 @@ class Component extends DCLogic {
         ? u.nivel + " " + u.paralelos.join(" y ") + " · " + fechaCorta(u.fecha) + " · columna " + u.columna_registro
         : s.cargando ? "" : "Crea el primero con «Crear examen».",
       ultNotas: u ? u.notas_pasadas : "", ultNotasVis: u ? "block" : "none",
+
+      vImprimir: v("imprimir"),
+      impTitulo: s.impresion ? s.impresion.id + " · " + s.impresion.nombre : "",
+      impResumen: s.impresion ? s.impresion.alumnos.length + " alumnos · " + s.impresion.preguntas.length + " preguntas · columna " + s.impresion.columna : "",
+      imprimirHojas: this.imprimirHojas,
+      imprimirTexto: s.imprimiendo ? "Preparando…" : "Imprimir hojas",
 
       vInicio: v("inicio"), vCrear: v("crear"), vExamenes: v("examenes"),
       vDetalle: v("detalle"), vFotos: v("fotos"), vAjustes: v("ajustes"),

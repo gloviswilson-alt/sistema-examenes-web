@@ -136,8 +136,11 @@
     // aros vistos, pasos parejos y ningún aro después de la última (ahí solo hay papel).
     const vistos = puntajes.filter((p) => p > umbral).length;
     const pasos = centros.slice(1).map((c, k) => Math.hypot(c[0] - centros[k][0], c[1] - centros[k][1]));
-    const medio = pasos.slice().sort((a, b) => a - b)[10];
-    const parejos = pasos.every((d) => Math.abs(d - medio) < 0.18 * medio);
+    // La perspectiva hace que el paso cambie poco a poco a lo largo de la fila: se compara cada paso con la
+    // recta que siguen todos. Saltarse un aro (paso doble) o repetir uno (paso casi nulo) queda muy lejos.
+    const kM = 10, dM = pasos.reduce((a, d) => a + d, 0) / 21;
+    const pend = pasos.reduce((a, d, k) => a + (k - kM) * (d - dM), 0) / pasos.reduce((a, _, k) => a + (k - kM) ** 2, 0);
+    const parejos = pasos.every((d, k) => Math.abs(d - (dM + pend * (k - kM))) < 0.3 * (dM + pend * (k - kM)));
     const escala = Math.hypot(ex[0], ex[1]);
     const desvioPrimera = Math.hypot(centros[0][0] - origen[0], centros[0][1] - origen[1]) / escala;
     const despues = puntajeAro(im, [centros[21][0] + pasoV[0], centros[21][1] + pasoV[1]], ex, ey);

@@ -16,6 +16,7 @@ const HOJA_TRIMESTRE = '3er Trimestre';
 const HOJA_BITACORA = 'Bitácora';
 const BITACORA_COLS = ['fecha_hora', 'id_examen', 'examen', 'curso', 'n_lista', 'carnet', 'nota', 'nota_leida', 'origen', 'resultado', 'celda', 'motivo'];
 const ORIGENES = ['foto', 'corregida', 'a mano'];
+const MOTIVO_MAX = 200;
 const NIVELES = { primero: 1, segundo: 2, tercero: 3, cuarto: 4, quinto: 5, sexto: 6 };
 
 export class ErrorPanel extends Error {}
@@ -387,6 +388,58 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
         }
       }
       return { escritas, resultados, bitacora };
+    },
+
+    // Corrige a mano la nota de un alumno en un examen: la ÚNICA vía que escribe sobre una nota existente
+    // (la pide el profesor y la confirma en el panel). No toca celdas con fórmula. Queda en la Bitácora con la
+    // nota anterior y el motivo; si la celda estaba vacía (alumno que rinde después), suma al conteo del examen.
+    async corregir({ id_examen, carnet, nota, motivo }) {
+      const { ex } = await examenPorId(id_examen);
+      const columna = validarColumna(ex.columna_registro);
+      const ci = normCarnet(carnet);
+      if (!Number.isInteger(nota) || nota < NOTA_MINIMA || nota > PUNTAJE_TOTAL) falla(`La nota debe ser un número entero entre ${NOTA_MINIMA} y ${PUNTAJE_TOTAL}`);
+      const razon = texto(motivo).slice(0, MOTIVO_MAX);
+      if (!Object.keys(jsonCelda(ex.asignacion, {})).some((c) => normCarnet(c) === ci)) falla('El alumno no está en este examen');
+      const alumno = (await leerTabla('Alumnos')).filas.find((a) => igual(a.nivel, ex.nivel) && normCarnet(a.carnet) === ci);
+      if (!alumno) falla('El carnet no está en Alumnos');
+      const curso = cursoDe(alumno.nivel, alumno.paralelo);
+      const id = registroDe(curso);
+
+      const liberar = await almacen.bloquear(`registro-${curso}`);
+      if (!liberar) falla(`El registro de ${curso} está ocupado, intenta de nuevo en unos segundos`);
+      let anterior, celda;
+      try {
+        const filas = (await sheets.leer(id, `'${HOJA_FILIACION}'!G9:G`)).flatMap((f, i) => (normCarnet(f[0]) === ci ? [i + 1] : []));
+        if (filas.length !== 1) falla(filas.length ? `El carnet aparece repetido en la Filiación de ${curso}` : `El carnet no aparece en la Filiación de ${curso}`);
+        celda = `${columna}${11 + filas[0]}`;
+        anterior = texto((await sheets.leer(id, `'${HOJA_TRIMESTRE}'!${celda}`, { formulas: true }))[0]?.[0]);
+        if (anterior.startsWith('=')) falla(`La celda ${celda} tiene una fórmula; corrígela a mano en el registro`);
+        const cambios = [{ rango: `'${HOJA_TRIMESTRE}'!${celda}`, valores: [[nota]] }];
+        const encabezado = texto((await sheets.leer(id, `'${HOJA_TRIMESTRE}'!${columna}2`, { formulas: true }))[0]?.[0]);
+        if (encabezado === '') cambios.push({ rango: `'${HOJA_TRIMESTRE}'!${columna}2`, valores: [[texto(ex.tema)]] });
+        await sheets.escribir(id, cambios);
+      } finally {
+        await liberar();
+      }
+
+      let bitacora = true;
+      try {
+        await anotarBitacora([[fechaBolivia(ahora()), texto(ex.id_examen), texto(ex.tema), curso, Number(alumno.numero) || '', ci,
+          nota, '', 'corrección', 'escrita', celda, `Antes: ${anterior || 'vacía'}` + (razon ? `. Motivo: ${razon}` : '')]]);
+      } catch {
+        bitacora = false;
+      }
+      if (anterior === '') {
+        const liberarEx = await almacen.bloquear(`examen-${ex.id_examen}`);
+        if (!liberarEx) falla('Nota corregida, pero no se pudo actualizar el conteo en Examenes; vuelve a intentar');
+        try {
+          const { t, ex: fresco } = await examenPorId(id_examen);
+          await escribirCeldasExamen(t, fresco, { notas_pasadas: (Number(fresco.notas_pasadas) || 0) + 1 });
+        } finally {
+          await liberarEx();
+        }
+      }
+      return { celda, anterior, nota, bitacora };
     },
 
     // Anula un examen que todavía no tiene notas pasadas: queda marcado "anulado" en Examenes (la fila no

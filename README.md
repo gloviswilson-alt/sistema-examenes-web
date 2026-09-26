@@ -20,7 +20,7 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
 - `public/lector.js`: lector de fotos en el navegador (BarcodeDetector de Chrome para el QR; las
   burbujas se leen con esa geometría). La foto nunca sale del celular.
 - `public/prueba.html`: prueba de conexión (solo lectura) del documento del sistema y los 4 registros.
-- `netlify/functions/panel/`: `panel.mjs` (entrada y contraseña), `operaciones.mjs` (las 8 operaciones),
+- `netlify/functions/panel/`: `panel.mjs` (entrada y contraseña), `operaciones.mjs` (las 9 operaciones),
   `sheets.mjs` (Google Sheets), `almacen.mjs` (ajustes y bloqueos en Netlify Blobs),
   `hojas.mjs` (IDs del documento del sistema y de los 4 registros).
 - `test/`: pruebas con hojas simuladas (`npm test`).
@@ -52,6 +52,7 @@ Respuesta: `{ "ok": true, ... }` o `{ "ok": false, "error": "..." }`.
 | `pasar` | `id_examen`, `notas[{carnet, nota, leida?, origen?}]` (nota entera de 2 a 45; `origen` = `foto`, `corregida` o `a mano`) | `escritas`, `resultados` por alumno (`escrita`, `ocupada`, `rechazada`, `no escrita`) y `bitacora` (si se pudo anotar) |
 | `ajuste` | `trimestre?`, `profesor?` (sin datos solo lee) | ajustes guardados |
 | `anular` | `id_examen` | lo marca `anulado` en Examenes, solo si no tiene notas pasadas (la fila no se borra) |
+| `corregir` | `id_examen`, `carnet`, `nota`, `motivo?` | `celda`, `anterior`, `nota`, `bitacora`: reemplaza la nota de ese alumno en el registro (única vía que escribe sobre una nota; nunca sobre una fórmula) y la anota en la Bitácora con la anterior y el motivo |
 
 En el selector del panel, una columna está ocupada si tiene notas o si ya está asignada a otro
 examen de ese paralelo (así dos exámenes pendientes no comparten columna).
@@ -82,7 +83,7 @@ La bitácora es solo un respaldo en Google Sheets; el panel no la muestra.
 En **Exámenes**, al elegir un curso se ve una parte del registro (dimensión del saber): solo las columnas de
 los exámenes hechos con el sistema, leídas del registro, con "No dio" para quien no tiene nota. La tabla se
 desplaza por dentro con el promedio y cuántos dieron fijos abajo; al tocar un examen se abre su ventana con
-"Imprimir de nuevo" y "Anular".
+"Imprimir de nuevo" y "Anular", y al tocar una nota se puede corregir (operación `corregir`).
 Si la bitácora falla, las notas igual quedan en el registro y el panel lo avisa. Las fotos no se guardan
 (nunca salen del celular).
 

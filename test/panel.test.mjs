@@ -358,3 +358,35 @@ test('estado: si no se puede leer las pestañas del registro, el enlace abre el 
   sheets.pestanas = async () => { throw new Error('Google no responde'); };
   assert.equal((await ops.estado()).registros[0].url, 'https://docs.google.com/spreadsheets/d/REG6B/edit');
 });
+
+test('corregir: reemplaza la nota a pedido, la anota en la Bitácora con la anterior y no toca fórmulas', async () => {
+  const { docs, ops, almacen } = escenario();
+  const t = docs.REG6B['3er Trimestre'];
+  // C2 ya tenía 30 en K13: se corrige a 33
+  assert.deepEqual(await ops.corregir({ id_examen: 'EX002', carnet: 'c2', nota: 33, motivo: 'Error al sumar' }),
+    { celda: 'K13', anterior: '30', nota: 33, bitacora: true });
+  assert.equal(t[12][10], 33);
+  assert.equal(t[1][10], 'La parábola y la elipse'); // encabezado vacío: se pone el nombre del examen
+  assert.equal(docs.SIS.Examenes[2][11], '0');         // reemplazo: el conteo no cambia
+  const b = docs.SIS['Bitácora'];
+  assert.deepEqual(b[1].slice(1, 12), ['EX002', 'La parábola y la elipse', '6B', 2, 'C2', 33, '', 'corrección', 'escrita', 'K13', 'Antes: 30. Motivo: Error al sumar']);
+  // C4 (excluido, rinde después) con celda vacía: se escribe y suma al conteo
+  await ops.corregir({ id_examen: 'EX002', carnet: 'C4', nota: 20 });
+  assert.equal(t[14][10], 20);
+  assert.equal(docs.SIS.Examenes[2][11], 1);
+  assert.equal(b[2][11], 'Antes: vacía');
+  assert.equal(almacen.bloqueos.size, 0);
+  // no se toca una fórmula, ni notas fuera de rango, ni alumnos ajenos
+  await assert.rejects(ops.corregir({ id_examen: 'EX002', carnet: 'C3', nota: 10 }), /fórmula/);
+  assert.equal(t[13][10].f, '=SUMA(1;2)');
+  await assert.rejects(ops.corregir({ id_examen: 'EX002', carnet: 'C1', nota: 46 }), /entre 2 y 45/);
+  await assert.rejects(ops.corregir({ id_examen: 'EX002', carnet: 'C9', nota: 20 }), /no está en este examen/);
+});
+
+test('corregir no escribe si el registro está ocupado ni en un examen anulado', async () => {
+  const { docs, ops } = escenario({ ocupado: ['registro-6B'] });
+  await assert.rejects(ops.corregir({ id_examen: 'EX002', carnet: 'C2', nota: 33 }), /ocupado/);
+  assert.equal(docs.REG6B['3er Trimestre'][12][10], 30);
+  docs.SIS.Examenes[2][12] = 'anulado';
+  await assert.rejects(ops.corregir({ id_examen: 'EX002', carnet: 'C2', nota: 33 }), /anulado/);
+});

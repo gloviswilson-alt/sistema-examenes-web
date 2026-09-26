@@ -346,9 +346,9 @@
               <sc-for list="{{ tablaFilas }}" as="f" hint-placeholder-count="6">
                 <div style="position:sticky;left:0;z-index:1;background:{{ f.fondo }};padding:5px 10px 5px 22px;border-bottom:1px solid #EAE3D6;display:flex;align-items:center;gap:6px;line-height:1.25"><span style="min-width:18px;color:#9AA69F;font-size:12px;flex:none">{{ f.n }}</span><span>{{ f.nombre }}</span></div>
                 <sc-for list="{{ f.notas }}" as="v" hint-placeholder-count="2">
-                  <div style="background:{{ f.fondo }};border-bottom:1px solid #EAE3D6;border-left:1px solid #EAE3D6;display:flex;align-items:center;justify-content:center;padding:3px 6px">
+                  <button sc-camel-on-click="{{ v.corregir }}" title="Corregir la nota" style="background:{{ f.fondo }};border:0;border-bottom:1px solid #EAE3D6;border-left:1px solid #EAE3D6;display:flex;align-items:center;justify-content:center;padding:3px 6px;font:inherit;cursor:pointer" style-hover="background:#E8EFE9">
                     <span style="padding:{{ v.relleno }};border-radius:12px;background:{{ v.fondo }};font-family:{{ v.fuente }};font-size:{{ v.tam }};color:{{ v.tinta }};white-space:nowrap">{{ v.t }}</span>
-                  </div>
+                  </button>
                 </sc-for>
               </sc-for>
               <div style="position:sticky;bottom:0;left:0;z-index:3;background:#F2E5CF;border-top:2px solid #C99B52;padding:10px 10px 10px 22px;font-size:10.5px;text-transform:uppercase;letter-spacing:0.12em;color:#7A5A1C;display:flex;flex-direction:column;justify-content:center;gap:3px"><span>Promedio</span><span style="text-transform:none;letter-spacing:0;font-size:12px">Dieron · no dieron</span></div>
@@ -519,6 +519,36 @@
     </div>
   </sc-if>
 
+  <!-- Corregir una nota (única vía que reemplaza una nota del registro; queda en la Bitácora). -->
+  <sc-if value="{{ hayCorrige }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:55;background:rgba(27,33,30,.55);display:flex;align-items:center;justify-content:center;padding:16px">
+      <div style="width:min(440px,100%);max-height:100%;overflow-y:auto;border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.3);background:#FBF9F5">
+        <div style="background:#1D4B43;color:#F1EDE3;padding:20px 22px 18px">
+          <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#C5D3C8;font-weight:500">Corregir nota · {{ corExamen }}</div>
+          <div style="font-family:Prata,Georgia,serif;font-size:21px;line-height:1.2;margin-top:6px">{{ corAlumno }}</div>
+        </div>
+        <div style="padding:18px 22px 6px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:#F2E5CF;border-radius:16px;padding:12px 14px">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#8A6A2A">Nota actual</div>
+            <div style="font-family:Prata,serif;font-size:26px;color:#6B5320;margin-top:2px">{{ corActual }}</div>
+          </div>
+          <div style="background:#DDE4DC;border-radius:16px;padding:12px 14px">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#4F6B62">Nota correcta</div>
+            <input type="number" min="2" max="45" value="{{ notaNueva }}" sc-camel-on-change="{{ setNotaNueva }}" placeholder="2 a 45" style="width:100%;box-sizing:border-box;margin-top:2px;border:0;border-bottom:1.5px solid #1D4B43;background:transparent;font-family:Prata,serif;font-size:26px;color:#1D4B43;padding:0">
+          </div>
+        </div>
+        <div style="padding:10px 22px 0">
+          <input type="text" value="{{ motivoNota }}" sc-camel-on-change="{{ setMotivoNota }}" placeholder="Motivo (opcional): error al sumar, reclamo del alumno…" style="width:100%;box-sizing:border-box;border:0;border-bottom:1.5px solid #E2DACB;background:transparent;font:inherit;font-size:14px;padding:8px 0">
+          <div style="font-size:12.5px;color:#6E7B74;margin-top:10px;line-height:1.5">Se cambia en tu registro, celda {{ corCelda }}. La nota anterior y el motivo quedan guardados en la Bitácora.</div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px 20px">
+          <button sc-camel-on-click="{{ corCancelar }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:16px;padding:11px 18px;font:inherit;font-size:14px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">Cancelar</button>
+          <button sc-camel-on-click="{{ corGuardar }}" style="border:0;background:#1D4B43;color:#FBF9F5;border-radius:16px;padding:11px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#153931">{{ corGuardarTexto }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <!-- Botón "Registro": elegir qué registro abrir en Google Sheets. -->
   <sc-if value="{{ verRegistros }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;inset:0;z-index:55;background:rgba(27,33,30,.55);display:flex;align-items:center;justify-content:center;padding:16px">
@@ -658,6 +688,8 @@ class Component extends DCLogic {
     formasAbiertas: false, col: null, colHover: null,
     filtro: "Sexto A", aviso: "",
     exVer: null, // examen abierto desde la tabla de Exámenes (id)
+    // Corregir una nota desde la tabla: { x: examen, a: alumno, actual: lo que muestra la celda } o null.
+    corrige: null, notaNueva: "", motivoNota: "", corrigiendo: false,
     // Notas por foto: filas por alumno, avisos de hojas que no se pueden pasar e imágenes de diagnóstico.
     lectura: [], problemas: [], diag: [], verDiag: false, leyendo: "", pasando: false,
     imprFuera: [],
@@ -724,7 +756,7 @@ class Component extends DCLogic {
     const visto = cols.find((k) => k.x.id_examen === s.exVer) || null;
     return {
       ...base, ...this.ventanaExamen(visto), hayTabla: true,
-      tablaNota: "Solo los exámenes del sistema · toca uno para ver sus opciones",
+      tablaNota: "Toca un examen para ver sus opciones, o una nota para corregirla",
       // El nombre se parte en líneas en pantallas angostas; con muchas columnas, la cuadrícula se desplaza de lado.
       tablaGrid: "minmax(140px,2.4fr) repeat(" + cols.length + ",minmax(88px,1fr))",
       tablaAncho: 140 + 88 * cols.length + "px",
@@ -736,13 +768,14 @@ class Component extends DCLogic {
       })),
       tablaFilas: reg.alumnos.map((a, i) => ({
         n: a.numero, nombre: a.nombre, fondo: i % 2 ? "#F6F1E8" : "#FBF9F5",
-        notas: cols.map(({ c }) => {
+        notas: cols.map(({ x, c }) => {
           const v = c ? c.valores[a.numero - 1] : "";
+          const corregir = () => this.setState({ corrige: { x, a, actual: v }, notaNueva: "", motivoNota: "" });
           // Sin ninguna nota en la columna todavía: "—"; si otros ya tienen nota: "No dio".
-          if (v !== "") return { t: v, fuente: "Prata,serif", tam: "15px", tinta: "#1D4B43", fondo: "transparent", relleno: "0" };
+          if (v !== "") return { corregir, t: v, fuente: "Prata,serif", tam: "15px", tinta: "#1D4B43", fondo: "transparent", relleno: "0" };
           return c && c.notas
-            ? { t: "No dio", fuente: "inherit", tam: "11.5px", tinta: "#A65543", fondo: "#F2E1DB", relleno: "2px 9px" }
-            : { t: "—", fuente: "inherit", tam: "13px", tinta: "#B9C1BB", fondo: "transparent", relleno: "0" };
+            ? { corregir, t: "No dio", fuente: "inherit", tam: "11.5px", tinta: "#A65543", fondo: "#F2E1DB", relleno: "2px 9px" }
+            : { corregir, t: "—", fuente: "inherit", tam: "13px", tinta: "#B9C1BB", fondo: "transparent", relleno: "0" };
         })
       }))
     };
@@ -785,6 +818,26 @@ class Component extends DCLogic {
     this.llamar("notas", { nivel, paralelo: par })
       .then((r) => ({ columnas: r.columnas, alumnos: r.alumnos }), (e) => ({ error: e.message }))
       .then((reg) => this.setState((st) => ({ registros: { ...st.registros, [k]: reg } })));
+  };
+
+  corregirNota = async () => {
+    const s = this.state, c = s.corrige;
+    if (!c || s.corrigiendo) return;
+    const nota = Number(String(s.notaNueva).trim());
+    if (!notaValida(nota)) return this.avisar("La nota debe ser un número entero de 2 a 45.");
+    if (String(nota) === String(c.actual)) return this.avisar("Es la misma nota que ya tiene.");
+    this.setState({ corrigiendo: true });
+    try {
+      const r = await this.llamar("corregir", { id_examen: c.x.id_examen, carnet: c.a.carnet, nota, motivo: s.motivoNota.trim() });
+      this.setState({ corrige: null });
+      this.avisar("Nota corregida en " + r.celda + ": " + (r.anterior || "vacía") + " → " + r.nota + "." + (r.bitacora ? "" : " Atención: no se pudo anotar en la Bitácora."));
+      this.asegurarRegistro(c.x.nivel, paralelosDe(s.filtro)[0], true);
+      if (!r.anterior) this.cargar(); // el examen suma una nota pasada
+    } catch (e) {
+      this.avisar(e.message);
+    } finally {
+      this.setState({ corrigiendo: false });
+    }
   };
 
   pedirAnular = (ex) => {
@@ -1101,6 +1154,7 @@ class Component extends DCLogic {
       const st = this.state;
       if (st.dialogo) return this.setState({ dialogo: null });
       if (st.verRegistros) return this.setState({ verRegistros: false });
+      if (st.corrige) return this.setState({ corrige: null });
       if (st.exVer) return this.setState({ exVer: null });
       this.setState(st.eligeFuera ? { [st.eligeFuera]: st.respaldoFuera, eligeFuera: null } : { calAbierto: false, tema: null, otro: false, sel: [] });
     };
@@ -1454,6 +1508,17 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
       totalAlumnos: imprimir + (imprimir === 1 ? " alumno" : " alumnos"),
       imprResumen: s.hoja.length + " preguntas · " + suma + "/45 puntos · columna " + colSel,
       revisarExamen: this.revisarExamen,
+      hayCorrige: !!s.corrige,
+      corExamen: s.corrige ? s.corrige.x.tema : "",
+      corAlumno: s.corrige ? s.corrige.a.numero + ". " + s.corrige.a.nombre : "",
+      corActual: s.corrige ? s.corrige.actual || "—" : "",
+      corCelda: s.corrige ? s.corrige.x.columna_registro + (11 + s.corrige.a.numero) : "",
+      notaNueva: s.notaNueva, motivoNota: s.motivoNota,
+      setNotaNueva: (e) => this.setState({ notaNueva: e.target.value }),
+      setMotivoNota: (e) => this.setState({ motivoNota: e.target.value }),
+      corCancelar: () => this.setState({ corrige: null }),
+      corGuardar: this.corregirNota,
+      corGuardarTexto: s.corrigiendo ? "Guardando…" : "Guardar corrección",
       hayDialogo: !!s.dialogo,
       dlgTitulo: s.dialogo ? s.dialogo.titulo : "",
       dlgLineas: s.dialogo ? s.dialogo.lineas : [],

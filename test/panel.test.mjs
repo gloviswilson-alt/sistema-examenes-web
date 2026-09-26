@@ -347,3 +347,17 @@ test('si la bitácora falla, las notas igual quedan en el registro y se avisa', 
   assert.equal(r.escritas, 1);
   assert.equal(docs.REG6B['3er Trimestre'][11][10], 41);
 });
+
+test('notas con id_examen devuelve lo calificado según la Bitácora (la escrita manda; si no, la última ocupada)', async () => {
+  const { ops } = escenario();
+  assert.equal((await ops.notas({ nivel: 'Sexto', paralelo: 'B' })).calificadas, undefined);
+  assert.deepEqual((await ops.notas({ nivel: 'Sexto', paralelo: 'B', id_examen: 'EX002' })).calificadas, []); // sin bitácora aún
+  await ops.pasar({ id_examen: 'EX002', notas: [
+    { carnet: 'C1', nota: 41, leida: 41, origen: 'foto' },   // escrita
+    { carnet: 'C2', nota: 20, leida: 20, origen: 'foto' },   // ocupada (ya tenía 30)
+    { carnet: 'C5', nota: 44, origen: 'a mano' }             // rechazada: no está en la Filiación
+  ] });
+  await ops.pasar({ id_examen: 'EX002', notas: [{ carnet: 'C1', nota: 12, origen: 'a mano' }] }); // ocupada: no reemplaza a la escrita
+  const n = await ops.notas({ nivel: 'Sexto', paralelo: 'B', id_examen: 'ex002' });
+  assert.deepEqual(n.calificadas.map((c) => [c.carnet, c.nota, c.resultado, c.origen]), [['C1', 41, 'escrita', 'foto'], ['C2', 20, 'ocupada', 'foto']]);
+});

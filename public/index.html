@@ -152,8 +152,9 @@
           <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:0.13em;font-weight:500;color:#9AA69F;margin-bottom:11px">Tema del examen · {{ nivelTexto }}</div>
           <div style="display:flex;flex-wrap:wrap;gap:8px">
             <sc-for list="{{ temas }}" as="t" hint-placeholder-count="6">
-              <button sc-camel-on-click="{{ t.set }}" style="border:1.5px solid {{ t.borde }};background:{{ t.fondo }};color:{{ t.tinta }};border-radius:22px;padding:9px 16px;font:inherit;font-size:13.5px;font-weight:500;cursor:pointer">{{ t.nombre }}</button>
+              <button sc-camel-on-click="{{ t.set }}" style="border:1.5px solid {{ t.borde }};background:{{ t.fondo }};color:{{ t.tinta }};border-radius:22px;padding:9px 16px;font:inherit;font-size:13.5px;font-weight:500;cursor:{{ t.cursor }};opacity:{{ t.opacidad }}">{{ t.nombre }}</button>
             </sc-for>
+            <button sc-camel-on-click="{{ abrirOtro }}" style="border:1.5px solid #F2E5CF;background:#F2E5CF;color:#7A5A1C;border-radius:22px;padding:9px 16px;font:inherit;font-size:13.5px;font-weight:500;cursor:pointer" style-hover="border-color:#C99B52">Otro</button>
           </div>
         </div>
 
@@ -162,12 +163,19 @@
           <div style="position:fixed;inset:0;z-index:50;background:rgba(27,33,30,.55);display:flex;align-items:center;justify-content:center;padding:clamp(0px,3vw,28px)">
             <div style="background:#FBF9F5;width:min(1180px,100%);max-height:100%;height:auto;display:flex;flex-direction:column;border-radius:clamp(0px,2.4vw,22px);box-shadow:0 24px 60px rgba(0,0,0,.28);overflow:hidden">
               <div style="flex:none;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px 14px;padding:16px 20px;border-bottom:1px solid #E2DACB">
-                <div style="font-family:Prata,Georgia,serif;font-size:19px;color:#1D4B43">{{ temaActual }}</div>
+                <div style="font-family:Prata,Georgia,serif;font-size:19px;color:#1D4B43">{{ ventanaTitulo }}</div>
                 <div style="display:flex;align-items:center;gap:14px">
                   <span style="font-size:13px;color:#6E7B74">{{ cuenta }}</span>
                   <button sc-camel-on-click="{{ todas }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:12px;padding:7px 13px;font:inherit;font-size:12.5px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">{{ todasTexto }}</button>
                 </div>
               </div>
+              <sc-if value="{{ otro }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:none;display:flex;gap:6px;overflow-x:auto;padding:10px 20px;border-bottom:1px solid #E2DACB">
+                  <sc-for list="{{ pestanas }}" as="t" hint-placeholder-count="5">
+                    <button sc-camel-on-click="{{ t.set }}" style="flex:none;border:1.5px solid {{ t.borde }};background:{{ t.fondo }};color:{{ t.tinta }};border-radius:18px;padding:7px 14px;font:inherit;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap">{{ t.nombre }}</button>
+                  </sc-for>
+                </div>
+              </sc-if>
               <div style="flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain">
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1px;background:#E2DACB">
                   <sc-for list="{{ banco }}" as="e" hint-placeholder-count="6">
@@ -629,7 +637,8 @@ class Component extends DCLogic {
     calMes: Number(hoyBolivia().slice(5, 7)) - 1, calAnio: Number(hoyBolivia().slice(0, 4)),
     // bancos: por nivel ({ temas, preguntas } o { error }); registros: por curso "6A" ({ columnas, alumnos } o { error })
     bancos: {}, registros: {}, impresion: null, impFuera: [], imprimiendo: false, examenes: [], preparando: null,
-    tema: null, sel: [], hoja: [], nombre: "", guardando: false,
+    // tema: el de la ventana de ejercicios; otro: la ventana muestra pestañas con todos los temas del nivel.
+    tema: null, otro: false, sel: [], hoja: [], nombre: "", guardando: false,
     formasAbiertas: false, col: null, colHover: null,
     filtro: "Sexto A", aviso: "", abierto: null,
     // Notas por foto: filas por alumno, avisos de hojas que no se pueden pasar e imágenes de diagnóstico.
@@ -1031,7 +1040,7 @@ class Component extends DCLogic {
       const st = this.state;
       if (st.dialogo) return this.setState({ dialogo: null });
       if (st.verRegistros) return this.setState({ verRegistros: false });
-      this.setState(st.eligeFuera ? { [st.eligeFuera]: st.respaldoFuera, eligeFuera: null } : { calAbierto: false, tema: null, sel: [] });
+      this.setState(st.eligeFuera ? { [st.eligeFuera]: st.respaldoFuera, eligeFuera: null } : { calAbierto: false, tema: null, otro: false, sel: [] });
     };
     document.addEventListener("click", this._fuera, true);
     document.addEventListener("keydown", this._esc);
@@ -1160,6 +1169,8 @@ class Component extends DCLogic {
 
     const enHoja = new Set(s.hoja.map((h) => h.codigo));
     const bank = preguntas.filter((q) => q.tema === s.tema && !enHoja.has(q.codigo));
+    const todasTema = bank.length > 0 && bank.every((q) => s.sel.indexOf(q.codigo) >= 0);
+    const temaBase = s.hoja.length ? (porCodigo(s.hoja[0].codigo) || {}).tema : null; // tema del examen
     const p = s.fecha.split("-");
     const primer = new Date(s.calAnio, s.calMes, 1).getDay();
     const huecos = (primer + 6) % 7;
@@ -1223,7 +1234,7 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
       cursos: CURSOS.map((nombre) => ({
         nombre, ...this.pick(s.curso === nombre),
         set: () => {
-          this.setState({ curso: nombre, tema: null, sel: [], hoja: [], nombre: "", col: null, imprFuera: [], formasAbiertas: false });
+          this.setState({ curso: nombre, tema: null, otro: false, sel: [], hoja: [], nombre: "", col: null, imprFuera: [], formasAbiertas: false });
           this.asegurarDatos(nombre);
         }
       })),
@@ -1266,14 +1277,22 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
         };
       }),
 
-      temas: (B.temas || []).map((nombre) => ({
-        nombre, ...this.pick(s.tema === nombre),
-        set: () => this.setState({ tema: s.tema === nombre ? null : nombre, sel: [] })
-      })),
+      // Con preguntas ya elegidas, solo su tema queda habilitado; los demás se agregan desde "Otro".
+      temas: (B.temas || []).map((nombre) => {
+        const libre = !temaBase || temaBase === nombre;
+        return {
+          nombre, ...this.pick(s.tema === nombre && !s.otro),
+          cursor: libre ? "pointer" : "not-allowed", opacidad: libre ? 1 : 0.45,
+          set: () => (libre ? this.setState({ tema: nombre, otro: false, sel: [] }) : this.avisar("Para agregar ejercicios de otro tema usa «Otro»."))
+        };
+      }),
+      abrirOtro: () => this.setState({ tema: (B.temas || [])[0] || null, otro: true, sel: [] }),
+      otro: s.otro,
+      ventanaTitulo: s.otro ? "Ejercicios de todos los temas" : s.tema || "",
+      pestanas: (B.temas || []).map((nombre) => ({ nombre, ...this.pick(s.tema === nombre), set: () => this.setState({ tema: nombre }) })),
 
       eligiendo: !!s.tema,
       armado: s.hoja.length > 0,
-      temaActual: s.tema || "",
       cuenta: s.sel.length === 1 ? "1 seleccionada" : s.sel.length + " seleccionadas",
       banco: bank.map((q, i) => {
         const on = s.sel.indexOf(q.codigo) >= 0;
@@ -1289,15 +1308,16 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
         };
       }),
       agregarTexto: s.sel.length ? "Agregar " + s.sel.length + (s.sel.length === 1 ? " seleccionada" : " seleccionadas") : "Agregar seleccionadas",
-      todasTexto: s.sel.length === bank.length && bank.length ? "Quitar todas" : "Seleccionar todas",
-      todas: () => this.setState({ sel: s.sel.length === bank.length ? [] : bank.map((q) => q.codigo) }),
-      cancelar: () => this.setState({ tema: null, sel: [] }),
+      // "Seleccionar todas" actúa sobre el tema visible; lo marcado en otras pestañas se conserva.
+      todasTexto: todasTema ? "Quitar todas" : "Seleccionar todas",
+      todas: () => this.setState({ sel: todasTema ? s.sel.filter((c) => !bank.some((q) => q.codigo === c)) : [...new Set(s.sel.concat(bank.map((q) => q.codigo)))] }),
+      cancelar: () => this.setState({ tema: null, otro: false, sel: [] }),
       confirmar: () => {
         if (!s.sel.length) return this.avisar("Selecciona al menos una pregunta.");
         if (s.hoja.length + s.sel.length > 10) return this.avisar("Un examen puede tener hasta 10 preguntas.");
-        const nuevas = bank.filter((q) => s.sel.indexOf(q.codigo) >= 0)
+        const nuevas = preguntas.filter((q) => s.sel.indexOf(q.codigo) >= 0 && !enHoja.has(q.codigo))
           .map((q) => ({ codigo: q.codigo, pts: 0, esp: s.tipo === "Desarrollo" ? "pequeño" : "sin" }));
-        this.setState({ hoja: this.repartir45(s.hoja.concat(nuevas)), tema: null, sel: [] });
+        this.setState({ hoja: this.repartir45(s.hoja.concat(nuevas)), tema: null, otro: false, sel: [] });
       },
       editar: () => this.setState({ hoja: [], formasAbiertas: false }),
       repartir: () => this.setState((st) => ({ hoja: this.repartir45(st.hoja) })),

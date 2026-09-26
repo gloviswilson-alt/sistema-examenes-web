@@ -22,7 +22,7 @@
 <body>
 <main>
   <h1>Prueba de conexión</h1>
-  <p>Solo lee: comprueba el documento del sistema y las copias de los 4 registros. No escribe nada.</p>
+  <p>Solo lee: comprueba el documento del sistema y los 4 registros. No escribe nada.</p>
   <form id="f">
     <input id="clave" type="password" placeholder="Contraseña del panel" autocomplete="current-password" required>
     <button id="b">Probar</button>
@@ -35,7 +35,7 @@ const PASOS = [
   ['Banco de Sexto', { operacion: 'banco', nivel: 'Sexto' }, (r) => `${r.preguntas.length} familias en ${r.temas.length} temas`],
   ['Banco de Segundo', { operacion: 'banco', nivel: 'Segundo' }, (r) => `${r.preguntas.length} familias en ${r.temas.length} temas`],
   ...['6A', '6B', '2A', '2B'].map((c) => [
-    `Registro de prueba ${c}`,
+    `Registro ${c}`,
     { operacion: 'notas', nivel: c[0] === '6' ? 'Sexto' : 'Segundo', paralelo: c[1] },
     (r) => 'Columnas con notas: ' + (r.columnas.filter((x) => x.notas).map((x) => `${x.letra} (${x.notas})`).join(', ') || 'ninguna')
   ])

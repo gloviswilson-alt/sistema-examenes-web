@@ -1,15 +1,15 @@
 // IDs de las hojas de Google (la parte de la URL entre /d/ y /edit).
 // Un ID solo no da acceso: cada hoja está compartida únicamente con la cuenta de servicio.
-// Los registros apuntan primero a COPIAS; el real se pone recién cuando la copia funcione.
+// Los registros apuntan a los REGISTROS REALES del profesor (Google Sheets desde el 26/09/2026; antes se probó
+// con copias "_con_CI" en la carpeta del sistema).
 export const HOJAS = {
   sistema: '1mG2lSPcX-rEzRoo8Bj5GwuDbkw3F47ymY64ugIK1Vz0', // documento_del_sistema
-  // COPIAS de prueba (carpeta del sistema), convertidas desde *_con_CI.xlsx el 24/09/2026.
-  // Poner en false cuando los registros apunten a los reales (el panel lo muestra al abrirlos).
-  registrosSonCopias: true,
+  // true solo si los registros de abajo fueran copias de prueba (el panel lo avisa al abrirlos).
+  registrosSonCopias: false,
   registros: {
-    '6A': '1IUdItMoHEH2Z2x-qGggDObNOdFSqqwxNPX--wwCri2w', // 6A_con_CI (1)
-    '6B': '1OVEvyPbd5MFOaqNuvZDvFi16g5vfoP0vGcPJe7uvTXw', // 6B_con_CI
-    '2A': '1Bu1KM82robTEZmuO7kyyzPH2_BG0sbFYs24ONobuMFg', // 2A_con_CI
-    '2B': '1Vh5RI0SAy0hDYX8OYp08XhOP21Yy1O7bHkRXWXbYnqE'  // 2B_con_CI
+    '6A': '1P54anVIP4Y2m7HyyBTghjNrtnJdw9zLltafpUiH6Gg0', // 6A (real)
+    '6B': '1vKrjbAwqWHctMtPHYRbx0FFK6QrLKMlCQorXsWhmb4I', // 6B (real)
+    '2A': '11xaqEPYzT2fWJxEk1_Qk8jVgfcW9VXwRxwk9TJyBkhM', // 2A (real)
+    '2B': '1sSNmu0uUY8i9RRgdWwFO-AdOtmYvvsh9aHkKj-ymEVQ'  // 2B (real)
   }
 };

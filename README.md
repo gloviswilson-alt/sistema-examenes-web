@@ -34,8 +34,8 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
 | `GOOGLE_SERVICE_ACCOUNT` | JSON completo de la clave de la cuenta de servicio |
 
 Los IDs de las hojas están en `hojas.mjs` (la parte de la URL entre `/d/` y `/edit`).
-Los registros apuntan primero a una **COPIA**; un curso sin ID no se toca. Mientras `registrosSonCopias` sea
-`true`, el panel avisa que el botón "Registro" abre las copias; se pone en `false` al pasar a los reales.
+Desde el 26/09/2026 los registros son los **reales** del profesor (antes se probó con copias); un curso sin ID
+no se toca. `registrosSonCopias: true` solo si se vuelve a apuntar a copias (el botón "Registro" lo avisa).
 
 ## API
 

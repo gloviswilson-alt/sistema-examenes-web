@@ -474,6 +474,27 @@
     </div>
   </sc-if>
 
+  <!-- Botón "Registro": elegir qué registro abrir en Google Sheets. -->
+  <sc-if value="{{ verRegistros }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:55;background:rgba(27,33,30,.55);display:flex;align-items:center;justify-content:center;padding:16px">
+      <div style="background:#FBF9F5;width:min(420px,100%);border-radius:22px;box-shadow:0 24px 60px rgba(0,0,0,.28);padding:22px 22px 16px">
+        <div style="font-family:Prata,Georgia,serif;font-size:21px;color:#1D4B43">Abrir registro</div>
+        <div style="font-size:13px;color:#6E7B74;margin-top:4px">{{ registrosNota }}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+          <sc-for list="{{ registrosLista }}" as="r" hint-placeholder-count="4">
+            <button sc-camel-on-click="{{ r.abrir }}" style="border:1.5px solid #E2DACB;background:#FBF9F5;border-radius:16px;padding:14px 12px;font:inherit;font-size:14.5px;font-weight:500;color:#1D4B43;cursor:pointer" style-hover="border-color:#1D4B43;background:#F1EDE3">{{ r.nombre }}</button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ sinRegistros }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13.5px;color:#A65543;margin-top:6px">No hay registros configurados o todavía no cargaron.</div>
+        </sc-if>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+          <button sc-camel-on-click="{{ cerrarRegistros }}" style="border:0;background:transparent;color:#6E7B74;font:inherit;font-size:13.5px;text-decoration:underline;text-underline-offset:4px;cursor:pointer">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <!-- Confirmación (revisar antes de guardar, anular un examen). -->
   <sc-if value="{{ hayDialogo }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;inset:0;z-index:55;background:rgba(27,33,30,.55);display:flex;align-items:center;justify-content:center;padding:16px">
@@ -585,7 +606,9 @@ class Component extends DCLogic {
     // Ventana "A quién imprimir": qué lista se edita ("imprFuera" al crear, "impFuera" al imprimir) y su copia para Cancelar.
     eligeFuera: null, respaldoFuera: [],
     // Ventana de confirmación: { titulo, lineas, nota, peligro, si, no, accion } o null.
-    dialogo: null, anulando: false
+    dialogo: null, anulando: false,
+    // Botón "Registro": enlaces a los registros en Google Sheets y si su ventana está abierta.
+    enlacesRegistro: [], verRegistros: false
   };
 
   ir = (vista) => () => {
@@ -717,7 +740,7 @@ class Component extends DCLogic {
     this.setState({ cargando: true });
     // Estado y ajustes se piden por separado: si uno falla, el otro igual se muestra.
     const [est, aj] = await Promise.allSettled([this.llamar("estado"), this.llamar("ajuste")]);
-    if (est.status === "fulfilled") this.setState({ ultimo: est.value.ultimo, examenes: est.value.examenes });
+    if (est.status === "fulfilled") this.setState({ ultimo: est.value.ultimo, examenes: est.value.examenes, enlacesRegistro: est.value.registros || [] });
     if (aj.status === "fulfilled") {
       const ajustes = { ...AJUSTES_BASE, ...(aj.value.trimestre ? { trimestre: aj.value.trimestre } : {}), ...(aj.value.profesor ? { profesor: aj.value.profesor } : {}) };
       this.setState({ ajustes, ajTrimestre: ajustes.trimestre, ajProfesor: ajustes.profesor });
@@ -930,6 +953,7 @@ class Component extends DCLogic {
       if (e.key !== "Escape") return;
       const st = this.state;
       if (st.dialogo) return this.setState({ dialogo: null });
+      if (st.verRegistros) return this.setState({ verRegistros: false });
       this.setState(st.eligeFuera ? { [st.eligeFuera]: st.respaldoFuera, eligeFuera: null } : { calAbierto: false, tema: null, sel: [] });
     };
     document.addEventListener("click", this._fuera, true);
@@ -1336,7 +1360,15 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
       diagTexto: s.verDiag ? "Ocultar lo que vio el lector" : "Ver lo que vio el lector",
       pasarTexto: s.pasando ? "Pasando…" : "Confirmar y pasar al registro",
       confirmarLectura: this.confirmarLectura,
-      abrirRegistro: () => this.avisar("Demo: abriendo el registro SABER.")
+      abrirRegistro: () => this.setState({ verRegistros: true }),
+      verRegistros: s.verRegistros,
+      cerrarRegistros: () => this.setState({ verRegistros: false }),
+      registrosNota: s.enlacesRegistro.some((r) => r.copia) ? "Son las copias de prueba, no tus registros reales." : "Se abren en Google Sheets.",
+      registrosLista: s.enlacesRegistro.map((r) => ({
+        nombre: (r.curso[0] === "6" ? "Sexto " : "Segundo ") + r.curso.slice(1),
+        abrir: () => { window.open(r.url, "_blank", "noopener"); this.setState({ verRegistros: false }); }
+      })),
+      sinRegistros: s.enlacesRegistro.length === 0
     };
   }
 }

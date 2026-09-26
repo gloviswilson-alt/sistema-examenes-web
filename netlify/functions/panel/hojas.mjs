@@ -4,6 +4,8 @@
 export const HOJAS = {
   sistema: '1mG2lSPcX-rEzRoo8Bj5GwuDbkw3F47ymY64ugIK1Vz0', // documento_del_sistema
   // COPIAS de prueba (carpeta del sistema), convertidas desde *_con_CI.xlsx el 24/09/2026.
+  // Poner en false cuando los registros apunten a los reales (el panel lo muestra al abrirlos).
+  registrosSonCopias: true,
   registros: {
     '6A': '1IUdItMoHEH2Z2x-qGggDObNOdFSqqwxNPX--wwCri2w', // 6A_con_CI (1)
     '6B': '1OVEvyPbd5MFOaqNuvZDvFi16g5vfoP0vGcPJe7uvTXw', // 6B_con_CI

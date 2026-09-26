@@ -120,7 +120,10 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
         notas_pasadas: Number(e.notas_pasadas) || 0,
         preguntas: jsonCelda(e.preguntas, []), asignacion: jsonCelda(e.asignacion, {}), excluidos: listaComas(e.excluidos)
       })).reverse();
-      return { ultimo: examenes[0] || null, examenes };
+      // Enlaces de los registros configurados, para el botón "Registro" del panel.
+      const registros = Object.entries(hojas.registros).filter(([, id]) => id)
+        .map(([curso, id]) => ({ curso, url: `https://docs.google.com/spreadsheets/d/${id}/edit`, copia: !!hojas.registrosSonCopias }));
+      return { ultimo: examenes[0] || null, examenes, registros };
     },
 
     async banco({ nivel, tema }) {

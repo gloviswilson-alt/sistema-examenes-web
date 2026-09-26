@@ -7,7 +7,7 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
 - **Panel** (`public/`): conectados la contraseña, Inicio, Ajustes, Crear examen (banco real, selector de
   columnas y guardado), impresión de las hojas y la lista de Exámenes con "Imprimir de nuevo" (mismas
   formas; se elige a quién) y Notas por foto (lee las hojas en el celular, se confirman y se pasan
-  al registro con `pasar`). El botón "Registro" de la barra inferior sigue siendo de ejemplo.
+  al registro con `pasar`). El botón "Registro" abre en Google Sheets el registro del curso elegido.
 - **Backend** (`netlify/functions/panel/`): función de Netlify que reemplaza al Apps Script.
 
 ## Archivos
@@ -33,7 +33,8 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
 | `GOOGLE_SERVICE_ACCOUNT` | JSON completo de la clave de la cuenta de servicio |
 
 Los IDs de las hojas están en `hojas.mjs` (la parte de la URL entre `/d/` y `/edit`).
-Los registros apuntan primero a una **COPIA**; un curso sin ID no se toca.
+Los registros apuntan primero a una **COPIA**; un curso sin ID no se toca. Mientras `registrosSonCopias` sea
+`true`, el panel avisa que el botón "Registro" abre las copias; se pone en `false` al pasar a los reales.
 
 ## API
 
@@ -43,7 +44,7 @@ Respuesta: `{ "ok": true, ... }` o `{ "ok": false, "error": "..." }`.
 
 | operacion | Datos | Devuelve |
 |---|---|---|
-| `estado` | — | `ultimo` y `examenes` (todos, el más nuevo primero, con preguntas, asignación y excluidos para reimprimir) |
+| `estado` | — | `ultimo` y `examenes` (todos, el más nuevo primero, con preguntas, asignación y excluidos para reimprimir) y `registros` (enlace de cada registro configurado, para el botón "Registro") |
 | `banco` | `nivel`, `tema?` | `temas`, `preguntas` (por `codigo`, con sus `formas`; el enunciado ya trae el signo de la clave; se ocultan las familias con 4 formas iguales) |
 | `guardar` | `fecha, nivel, paralelos[], tema, duracion?, columna_registro, preguntas[{codigo, puntaje, espacio}], excluidos[]?` | `id_examen` (`EX001`…), `asignacion` (carnet → forma) |
 | `cambiar` | `id_examen`, `columna_registro?`, `excluidos[]?` | lo cambiado |

@@ -24,6 +24,7 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
   `sheets.mjs` (Google Sheets), `almacen.mjs` (ajustes y bloqueos en Netlify Blobs),
   `hojas.mjs` (IDs del documento del sistema y de los 4 registros).
 - `test/`: pruebas con hojas simuladas (`npm test`).
+- `MAPA.md`: la idea completa del sistema pedagógico y el orden recomendado para construirla.
 
 ## Variables de entorno (Netlify → Project configuration → Environment variables)
 

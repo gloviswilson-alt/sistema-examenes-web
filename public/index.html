@@ -15,7 +15,7 @@
 </head>
 <body>
 <x-dc>
-<div style="min-height:100vh;background:#F5F1EA;color:#22302C;font-family:Jost,system-ui,sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;padding-bottom:{{ padAbajo }}">
+<div style="min-height:100vh;box-sizing:border-box;background:#F5F1EA;color:#22302C;font-family:Jost,system-ui,sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;padding-bottom:{{ padAbajo }}">
 
   <div style="max-width:820px;margin:0 auto;padding:34px 22px 12px">
 
@@ -612,15 +612,14 @@ const hoyBolivia = () => new Date(Date.now() - 4 * 3600000).toISOString().slice(
 const LETRAS = ["I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
 const NAV_ALTO = 66; // alto de la barra de navegación fija de abajo (px)
 
-// La caja de la tabla de Exámenes es tan alta como la pantalla menos el título de la tarjeta y lo que hay debajo
-// de ella (pie y espacio de la barra de navegación): al bajar la página hasta el final, la tarjeta entera queda
-// a la vista y la tabla se desplaza con su propia barra.
+// La caja de la tabla de Exámenes ocupa justo el alto que queda en la pantalla: la página no se desplaza
+// (una sola barra, la de la tabla) y la caja termina sobre la barra de navegación.
 function ajustarCaja() {
   const caja = document.querySelector("[data-caja]");
   if (!caja || !caja.offsetParent) return;
-  const tarjeta = caja.parentElement.getBoundingClientRect(), titulo = caja.getBoundingClientRect().top - tarjeta.top;
-  const debajo = document.documentElement.scrollHeight - (tarjeta.bottom + window.scrollY);
-  caja.style.maxHeight = Math.max(240, window.innerHeight - titulo - debajo - 8) + "px";
+  const arriba = caja.getBoundingClientRect().top + window.scrollY;
+  const debajo = document.documentElement.scrollHeight - (caja.parentElement.getBoundingClientRect().bottom + window.scrollY);
+  caja.style.maxHeight = Math.max(240, window.innerHeight - arriba - debajo - 1) + "px";
 }
 const notaValida = (n) => Number.isInteger(n) && n >= 2 && n <= 45;
 const normCarnet = (c) => String(c || "").replace(/\s+/g, "").toUpperCase();

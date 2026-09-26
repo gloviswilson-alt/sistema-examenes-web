@@ -12,6 +12,11 @@ const PREGUNTAS_MIN = 3;
 const PREGUNTAS_MAX = 10;
 const HOJA_FILIACION = 'Filiación';
 const HOJA_TRIMESTRE = '3er Trimestre';
+// Bitácora: cada nota enviada al registro queda anotada en el documento del sistema, con lo que leyó
+// la foto, si se corrigió a mano y qué pasó en el registro. Nunca se reescribe: solo se agregan filas.
+const HOJA_BITACORA = 'Bitácora';
+const BITACORA_COLS = ['fecha_hora', 'id_examen', 'examen', 'curso', 'n_lista', 'carnet', 'nota', 'nota_leida', 'origen', 'resultado', 'celda', 'motivo'];
+const ORIGENES = ['foto', 'corregida', 'a mano'];
 const NIVELES = { primero: 1, segundo: 2, tercero: 3, cuarto: 4, quinto: 5, sexto: 6 };
 
 export class ErrorPanel extends Error {}
@@ -104,6 +109,19 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
     await sheets.escribir(SISTEMA, cambios);
   }
 
+  // Agrega filas a la bitácora; la primera vez crea la hoja con sus encabezados.
+  async function anotarBitacora(filas) {
+    let encabezado;
+    try {
+      encabezado = await sheets.leer(SISTEMA, `'${HOJA_BITACORA}'!A1:L1`);
+    } catch {
+      await sheets.crearHoja(SISTEMA, HOJA_BITACORA);
+      encabezado = [];
+    }
+    if (!encabezado.length) await sheets.escribir(SISTEMA, [{ rango: `'${HOJA_BITACORA}'!A1:L1`, valores: [BITACORA_COLS] }]);
+    await sheets.agregarFilas(SISTEMA, HOJA_BITACORA, filas);
+  }
+
   function validarColumna(c) {
     if (!COLUMNAS_SABER.includes(texto(c).toUpperCase())) falla('La columna del registro debe estar entre I y R');
     return texto(c).toUpperCase();
@@ -123,7 +141,8 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
       // Enlaces de los registros configurados, para el botón "Registro" del panel.
       const registros = Object.entries(hojas.registros).filter(([, id]) => id)
         .map(([curso, id]) => ({ curso, url: `https://docs.google.com/spreadsheets/d/${id}/edit`, copia: !!hojas.registrosSonCopias }));
-      return { ultimo: examenes[0] || null, examenes, registros };
+      const sistema = `https://docs.google.com/spreadsheets/d/${SISTEMA}/edit`; // ahí está la pestaña Bitácora
+      return { ultimo: examenes[0] || null, examenes, registros, sistema };
     },
 
     async banco({ nivel, tema }) {
@@ -209,7 +228,7 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
       };
       const faltan = Object.keys(fila).filter((c) => !tEx.cols.includes(c));
       if (faltan.length) falla(`Faltan columnas en Examenes: ${faltan.join(', ')}`);
-      await sheets.agregarFila(SISTEMA, 'Examenes', tEx.cols.map((c) => fila[c] ?? ''));
+      await sheets.agregarFilas(SISTEMA, 'Examenes', [tEx.cols.map((c) => fila[c] ?? '')]);
       return { id_examen: id, asignacion };
     },
 
@@ -263,6 +282,7 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
       const alumnos = (await leerTabla('Alumnos')).filas.filter((a) => igual(a.nivel, ex.nivel));
 
       const resultados = [];
+      const bit = new Map(); // resultado → datos para la bitácora (no se devuelven al panel)
       const porCurso = new Map();
       const vistos = new Set();
       for (const entrada of notas) {
@@ -270,6 +290,8 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
         const nota = entrada.nota;
         const r = { carnet, nota };
         resultados.push(r);
+        // Lo que leyó la foto y cómo se obtuvo la nota.
+        bit.set(r, { leida: Number.isInteger(entrada.leida) ? entrada.leida : '', origen: ORIGENES.includes(entrada.origen) ? entrada.origen : '' });
         const rechazar = (motivo) => Object.assign(r, { estado: 'rechazada', motivo });
         if (!carnet) { rechazar('Falta el carnet'); continue; }
         if (!Number.isInteger(nota) || nota < NOTA_MINIMA || nota > PUNTAJE_TOTAL) {
@@ -282,6 +304,7 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
         const alumno = alumnos.find((a) => normCarnet(a.carnet) === carnet);
         if (!alumno) { rechazar('El carnet no está en Alumnos'); continue; }
         const curso = cursoDe(alumno.nivel, alumno.paralelo);
+        bit.get(r).curso = curso;
         if (!porCurso.has(curso)) porCurso.set(curso, []);
         porCurso.get(curso).push(r);
       }
@@ -316,6 +339,7 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
               }
               cambios.push({ rango: `'${HOJA_TRIMESTRE}'!${columna}${11 + r.numero}`, valores: [[r.nota]] });
               r.estado = 'escrita';
+              bit.get(r).celda = `${columna}${11 + r.numero}`;
             }
             if (cambios.length && encabezado === '') {
               cambios.push({ rango: `'${HOJA_TRIMESTRE}'!${columna}2`, valores: [[texto(ex.tema)]] });
@@ -333,6 +357,17 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
         }
       }
 
+      // La bitácora va antes del conteo: si falla, las notas ya están en el registro y se avisa.
+      let bitacora = true;
+      try {
+        await anotarBitacora(resultados.map((r) => [
+          fechaBolivia(ahora()), texto(ex.id_examen), texto(ex.tema), bit.get(r).curso || '', r.numero || '', r.carnet,
+          r.nota ?? '', bit.get(r).leida, bit.get(r).origen, r.estado, bit.get(r).celda || '', r.motivo || ''
+        ]));
+      } catch {
+        bitacora = false;
+      }
+
       const escritas = resultados.filter((r) => r.estado === 'escrita').length;
       if (escritas) {
         // Se relee la fila bajo bloqueo para no pisar otro envío simultáneo.
@@ -345,7 +380,7 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
           await liberar();
         }
       }
-      return { escritas, resultados };
+      return { escritas, resultados, bitacora };
     },
 
     // Anula un examen que todavía no tiene notas pasadas: queda marcado "anulado" en Examenes (la fila no

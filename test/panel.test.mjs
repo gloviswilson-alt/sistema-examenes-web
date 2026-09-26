@@ -20,6 +20,7 @@ function sheetsFalso(docs) {
     async leer(id, rango, { formulas = false } = {}) {
       const { hoja, c1, f1, c2, f2 } = parsear(rango);
       const filas = docs[id][hoja];
+      if (!filas) throw new Error(`Error de Google Sheets (400): Unable to parse range: ${rango}`);
       const out = [];
       for (let f = f1; f <= Math.min(f2, filas.length); f++) {
         const fila = [];
@@ -36,12 +37,16 @@ function sheetsFalso(docs) {
         escrituras.push({ id, rango, valor: valores[0][0] });
         const filas = docs[id][hoja];
         while (filas.length < f1) filas.push([]);
-        filas[f1 - 1][c1] = valores[0][0];
+        valores[0].forEach((v, k) => { filas[f1 - 1][c1 + k] = v; });
       }
     },
-    async agregarFila(id, hoja, fila) {
-      escrituras.push({ id, rango: `'${hoja}'!append`, valor: fila });
-      docs[id][hoja].push(fila);
+    async agregarFilas(id, hoja, nuevas) {
+      for (const fila of nuevas) escrituras.push({ id, rango: `'${hoja}'!append`, valor: fila });
+      docs[id][hoja].push(...nuevas);
+    },
+    async crearHoja(id, nombre) {
+      escrituras.push({ id, rango: `'${nombre}'!nueva` });
+      docs[id][nombre] = [];
     }
   };
 }
@@ -153,7 +158,7 @@ test('pasar no escribe nada si el carnet no está en la Filiación', async () =>
   const r = await ops.pasar({ id_examen: 'EX002', notas: [{ carnet: 'C5', nota: 30 }] });
   assert.equal(r.escritas, 0);
   assert.match(r.resultados[0].motivo, /no aparece en la Filiación/);
-  assert.equal(sheets.escrituras.length, 0);
+  assert.equal(sheets.escrituras.filter((w) => !w.rango.includes('Bitácora')).length, 0);
 });
 
 test('pasar rechaza excluidos, ajenos, repetidos y notas fuera de rango', async () => {
@@ -163,14 +168,14 @@ test('pasar rechaza excluidos, ajenos, repetidos y notas fuera de rango', async 
     notas: [{ carnet: 'C4', nota: 30 }, { carnet: 'C9', nota: 30 }, { carnet: 'C1', nota: 46 }, { carnet: 'C1', nota: 1 }, { carnet: 'C1', nota: 30.5 }, { carnet: 'C1', nota: '30' }]
   });
   assert.deepEqual(r.resultados.map((x) => x.estado), Array(6).fill('rechazada'));
-  assert.equal(sheets.escrituras.length, 0);
+  assert.equal(sheets.escrituras.filter((w) => !w.rango.includes('Bitácora')).length, 0);
 });
 
 test('pasar no escribe si el registro está bloqueado por otro envío', async () => {
   const { sheets, ops } = escenario({ ocupado: ['registro-6B'] });
   const r = await ops.pasar({ id_examen: 'EX002', notas: [{ carnet: 'C1', nota: 30 }] });
   assert.equal(r.resultados[0].estado, 'no escrita');
-  assert.equal(sheets.escrituras.length, 0);
+  assert.equal(sheets.escrituras.filter((w) => !w.rango.includes('Bitácora')).length, 0);
 });
 
 test('pasar libera el bloqueo aunque falle Google', async () => {
@@ -263,6 +268,7 @@ test('estado, notas (con fecha y promedio) y ajuste', async () => {
   assert.deepEqual(e.examenes.map((x) => x.id_examen), ['EX002', 'EX001']);
   assert.equal(e.ultimo.asignacion.C1, 'A');
   assert.deepEqual(e.ultimo.excluidos, ['C4']);
+  assert.equal(e.sistema, 'https://docs.google.com/spreadsheets/d/SIS/edit');
   assert.deepEqual(e.registros, [{ curso: '6B', url: 'https://docs.google.com/spreadsheets/d/REG6B/edit', copia: false }]);
 
   const n = await ops.notas({ nivel: 'Sexto', paralelo: 'B' });
@@ -308,4 +314,36 @@ test('anular no hace nada si el examen está bloqueado por un envío de notas', 
   const { docs, ops } = escenario({ ocupado: ['examen-EX002'] });
   await assert.rejects(ops.anular({ id_examen: 'EX002' }), /ocupado/);
   assert.equal(docs.SIS.Examenes[2][12], 'creado');
+});
+
+test('pasar anota todo en la Bitácora (la crea la primera vez) sin tocar lo que ya tenía', async () => {
+  const { docs, ops } = escenario();
+  const r = await ops.pasar({ id_examen: 'EX002', notas: [
+    { carnet: 'C1', nota: 41, leida: 41, origen: 'foto' },
+    { carnet: 'C2', nota: 20, leida: 12, origen: 'corregida' },
+    { carnet: 'C9', nota: 30, origen: 'a mano' }
+  ] });
+  assert.equal(r.bitacora, true);
+  assert.deepEqual(Object.keys(r.resultados[0]).sort(), ['carnet', 'estado', 'nota', 'numero']); // el detalle de la bitácora no viaja al panel
+  const b = docs.SIS['Bitácora'];
+  assert.deepEqual(b[0], ['fecha_hora', 'id_examen', 'examen', 'curso', 'n_lista', 'carnet', 'nota', 'nota_leida', 'origen', 'resultado', 'celda', 'motivo']);
+  assert.deepEqual(b[1], ['2026-09-24 12:00', 'EX002', 'La parábola y la elipse', '6B', 1, 'C1', 41, 41, 'foto', 'escrita', 'K12', '']);
+  assert.deepEqual(b[2].slice(3, 11), ['6B', 2, 'C2', 20, 12, 'corregida', 'ocupada', '']);
+  assert.deepEqual(b[3].slice(5, 10), ['C9', 30, '', 'a mano', 'rechazada']);
+
+  await ops.pasar({ id_examen: 'EX002', notas: [{ carnet: 'C3', nota: 9, leida: 9, origen: 'foto' }] });
+  assert.equal(b.length, 5); // se agrega al final; el encabezado no se repite
+  assert.equal(b[4][5], 'C3');
+});
+
+test('si la bitácora falla, las notas igual quedan en el registro y se avisa', async () => {
+  const { docs, sheets, ops } = escenario();
+  sheets.agregarFilas = async (id, hoja, filas) => {
+    if (hoja === 'Bitácora') throw new Error('Google no responde');
+    docs[id][hoja].push(...filas);
+  };
+  const r = await ops.pasar({ id_examen: 'EX002', notas: [{ carnet: 'C1', nota: 41 }] });
+  assert.equal(r.bitacora, false);
+  assert.equal(r.escritas, 1);
+  assert.equal(docs.REG6B['3er Trimestre'][11][10], 41);
 });

@@ -74,9 +74,16 @@ export function crearSheets(credencialesJson) {
       });
     },
 
-    async agregarFila(id, hoja, fila) {
+    async agregarFilas(id, hoja, filas) {
       const url = `${API}/${id}/values/${encodeURIComponent(hoja)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
-      await pedir(url, { method: 'POST', body: JSON.stringify({ values: [fila] }) });
+      await pedir(url, { method: 'POST', body: JSON.stringify({ values: filas }) });
+    },
+    // Agrega una hoja (pestaña) nueva al documento.
+    async crearHoja(id, nombre) {
+      await pedir(`${API}/${id}:batchUpdate`, {
+        method: 'POST',
+        body: JSON.stringify({ requests: [{ addSheet: { properties: { title: nombre } } }] })
+      });
     }
   };
 }

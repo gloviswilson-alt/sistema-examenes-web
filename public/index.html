@@ -485,6 +485,12 @@
             <button sc-camel-on-click="{{ r.abrir }}" style="border:1.5px solid #E2DACB;background:#FBF9F5;border-radius:16px;padding:14px 12px;font:inherit;font-size:14.5px;font-weight:500;color:#1D4B43;cursor:pointer" style-hover="border-color:#1D4B43;background:#F1EDE3">{{ r.nombre }}</button>
           </sc-for>
         </div>
+        <sc-if value="{{ hayBitacora }}" hint-placeholder-val="{{ false }}">
+          <button sc-camel-on-click="{{ abrirBitacora }}" style="width:100%;margin-top:10px;border:1.5px solid #E2DACB;background:#F2E5CF;border-radius:16px;padding:12px;font:inherit;font-size:14px;color:#6B5320;cursor:pointer;text-align:left" style-hover="border-color:#8A6A2A">
+            <span style="display:block;font-weight:500">Bitácora de notas</span>
+            <span style="display:block;font-size:12px;margin-top:2px">Todo lo que se pasó con fotos: lo leído, lo corregido y qué pasó en el registro (pestaña «Bitácora» del documento del sistema).</span>
+          </button>
+        </sc-if>
         <sc-if value="{{ sinRegistros }}" hint-placeholder-val="{{ false }}">
           <div style="font-size:13.5px;color:#A65543;margin-top:6px">No hay registros configurados o todavía no cargaron.</div>
         </sc-if>
@@ -608,7 +614,7 @@ class Component extends DCLogic {
     // Ventana de confirmación: { titulo, lineas, nota, peligro, si, no, accion } o null.
     dialogo: null, anulando: false,
     // Botón "Registro": enlaces a los registros en Google Sheets y si su ventana está abierta.
-    enlacesRegistro: [], verRegistros: false
+    enlacesRegistro: [], enlaceSistema: "", verRegistros: false
   };
 
   ir = (vista) => () => {
@@ -740,7 +746,7 @@ class Component extends DCLogic {
     this.setState({ cargando: true });
     // Estado y ajustes se piden por separado: si uno falla, el otro igual se muestra.
     const [est, aj] = await Promise.allSettled([this.llamar("estado"), this.llamar("ajuste")]);
-    if (est.status === "fulfilled") this.setState({ ultimo: est.value.ultimo, examenes: est.value.examenes, enlacesRegistro: est.value.registros || [] });
+    if (est.status === "fulfilled") this.setState({ ultimo: est.value.ultimo, examenes: est.value.examenes, enlacesRegistro: est.value.registros || [], enlaceSistema: est.value.sistema || "" });
     if (aj.status === "fulfilled") {
       const ajustes = { ...AJUSTES_BASE, ...(aj.value.trimestre ? { trimestre: aj.value.trimestre } : {}), ...(aj.value.profesor ? { profesor: aj.value.profesor } : {}) };
       this.setState({ ajustes, ajTrimestre: ajustes.trimestre, ajProfesor: ajustes.profesor });
@@ -877,7 +883,8 @@ class Component extends DCLogic {
             clave: ex.id_examen + "-" + h.qr.carnet, id_examen: ex.id_examen, carnet: asignada, forma: h.qr.forma,
             columna: ex.columna_registro, nombre: alumno ? alumno.nombre : "Carnet " + asignada,
             curso: alumno ? alumno.curso : ex.nivel, numero: alumno ? alumno.numero : h.qr.numero,
-            nota: h.nota === undefined ? "" : h.nota, motivo: h.nota === undefined ? h.motivo + "." : "",
+            nota: h.nota === undefined ? "" : h.nota, leida: h.nota === undefined ? null : h.nota,
+            motivo: h.nota === undefined ? h.motivo + "." : "",
             corregida: false, resultado: null
           });
         }
@@ -899,12 +906,18 @@ class Component extends DCLogic {
     if (pendientes.some((r) => !notaValida(r.nota))) return this.avisar("Corrige o quita las hojas marcadas «Revisar».");
     this.setState({ pasando: true });
     const resultados = {};
+    let sinBitacora = false;
     try {
       for (const id of [...new Set(pendientes.map((r) => r.id_examen))]) {
         const lote = pendientes.filter((r) => r.id_examen === id);
         try {
-          const r = await this.llamar("pasar", { id_examen: id, notas: lote.map((x) => ({ carnet: x.carnet, nota: x.nota })) });
+          // Para la bitácora: lo que leyó la foto y si la nota vino de la foto, se corrigió o se escribió a mano.
+          const r = await this.llamar("pasar", { id_examen: id, notas: lote.map((x) => ({
+            carnet: x.carnet, nota: x.nota, leida: x.leida,
+            origen: x.leida === null ? "a mano" : x.nota === x.leida ? "foto" : "corregida"
+          })) });
           for (const x of r.resultados) resultados[id + "-" + normCarnet(x.carnet)] = { estado: x.estado, motivo: x.motivo };
+          if (r.bitacora === false) sinBitacora = true;
         } catch (e) {
           for (const x of lote) resultados[x.clave] = { estado: "no escrita", motivo: e.message };
         }
@@ -914,7 +927,8 @@ class Component extends DCLogic {
       const escritas = Object.values(resultados).filter((x) => x.estado === "escrita").length;
       // Los registros cambiaron: se vuelven a leer cuando se necesiten.
       this.setState({ lectura, pasando: false, registros: {} });
-      this.avisar(escritas + (escritas === 1 ? " nota pasada" : " notas pasadas") + " al registro.");
+      this.avisar(escritas + (escritas === 1 ? " nota pasada" : " notas pasadas") + " al registro." +
+        (sinBitacora ? " Atención: no se pudo anotar en la Bitácora." : ""));
       this.cargar();
     }
   };
@@ -1368,7 +1382,9 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
         nombre: (r.curso[0] === "6" ? "Sexto " : "Segundo ") + r.curso.slice(1),
         abrir: () => { window.open(r.url, "_blank", "noopener"); this.setState({ verRegistros: false }); }
       })),
-      sinRegistros: s.enlacesRegistro.length === 0
+      sinRegistros: s.enlacesRegistro.length === 0,
+      hayBitacora: !!s.enlaceSistema,
+      abrirBitacora: () => { window.open(s.enlaceSistema, "_blank", "noopener"); this.setState({ verRegistros: false }); }
     };
   }
 }

@@ -49,7 +49,7 @@ Respuesta: `{ "ok": true, ... }` o `{ "ok": false, "error": "..." }`.
 | `guardar` | `fecha, nivel, paralelos[], tema, duracion?, columna_registro, preguntas[{codigo, puntaje, espacio}], excluidos[]?` | `id_examen` (`EX001`…), `asignacion` (carnet → forma) |
 | `cambiar` | `id_examen`, `columna_registro?`, `excluidos[]?` | lo cambiado |
 | `notas` | `nivel`, `paralelo` | `alumnos` del curso y `columnas` I–R: encabezado, cuántas notas y su promedio, y qué exámenes la usan (con fecha) |
-| `pasar` | `id_examen`, `notas[{carnet, nota}]` (nota entera de 2 a 45) | `escritas` y `resultados` por alumno (`escrita`, `ocupada`, `rechazada`, `no escrita`) |
+| `pasar` | `id_examen`, `notas[{carnet, nota, leida?, origen?}]` (nota entera de 2 a 45; `origen` = `foto`, `corregida` o `a mano`) | `escritas`, `resultados` por alumno (`escrita`, `ocupada`, `rechazada`, `no escrita`) y `bitacora` (si se pudo anotar) |
 | `ajuste` | `trimestre?`, `profesor?` (sin datos solo lee) | ajustes guardados |
 | `anular` | `id_examen` | lo marca `anulado` en Examenes, solo si no tiene notas pasadas (la fila no se borra) |
 
@@ -67,6 +67,15 @@ En la hoja Examenes, `paralelos` y `excluidos` se guardan separados por comas;
 
 Un examen anulado no aparece en `estado`, no ocupa columna en `notas` y `pasar` y `cambiar` lo rechazan.
 Antes de guardar, el panel muestra un resumen para confirmar (después ya no se cambian las preguntas).
+
+## Bitácora
+
+Cada envío de `pasar` agrega una fila por alumno en la pestaña **Bitácora** del documento del sistema
+(la crea la primera vez): fecha y hora, examen, curso, n.º de lista, carnet, nota enviada, nota que leyó la
+foto, origen (`foto`, `corregida` o `a mano`), resultado en el registro, celda y motivo. Solo se agregan
+filas, nunca se modifican: si después se cambia una nota en el registro, la original queda aquí.
+Si la bitácora falla, las notas igual quedan en el registro y el panel lo avisa. Se abre desde el botón
+"Registro". Las fotos no se guardan (nunca salen del celular).
 
 ## Reglas de `pasar`
 

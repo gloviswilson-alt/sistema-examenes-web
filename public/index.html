@@ -288,6 +288,7 @@
         <div style="font-size:13.5px;color:#C5D3C8;margin-top:4px">{{ impResumen }}</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
           <button sc-camel-on-click="{{ imprimirHojas }}" style="border:0;background:#C99B52;color:#3B2A0C;border-radius:16px;padding:12px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#BC8C43">{{ imprimirTexto }}</button>
+          <button sc-camel-on-click="{{ impVolver }}" style="border:1.5px solid #3C6B61;background:transparent;color:#F1EDE3;border-radius:16px;padding:12px 18px;font:inherit;font-size:14px;cursor:pointer" style-hover="background:#153931">← Volver</button>
           <button sc-camel-on-click="{{ irInicio }}" style="border:1.5px solid #3C6B61;background:transparent;color:#F1EDE3;border-radius:16px;padding:12px 18px;font:inherit;font-size:14px;cursor:pointer" style-hover="background:#153931">Volver al inicio</button>
         </div>
       </div>
@@ -1030,6 +1031,8 @@ class Component extends DCLogic {
       impFueraTexto: s.impresion ? this.textoFuera(s.impresion.alumnos.length, s.impFuera.length) : "",
       elegirImprimir: () => this.setState({ eligeFuera: "impFuera", respaldoFuera: s.impFuera }),
       imprimirHojas: this.imprimirHojas,
+      // Pantalla anterior: la lista de Exámenes si se reimprime; Crear examen (vacío) si se acaba de guardar.
+      impVolver: this.ir(s.impresion && s.impresion.reimpresion ? "examenes" : "crear"),
       imprimirTexto: s.imprimiendo ? "Preparando…" : "Imprimir hojas",
 
       vInicio: v("inicio"), vCrear: v("crear"), vExamenes: v("examenes"),

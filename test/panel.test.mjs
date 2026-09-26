@@ -44,6 +44,9 @@ function sheetsFalso(docs) {
       for (const fila of nuevas) escrituras.push({ id, rango: `'${hoja}'!append`, valor: fila });
       docs[id][hoja].push(...nuevas);
     },
+    async pestanas(id) {
+      return Object.fromEntries(Object.keys(docs[id]).map((t, i) => [t, 1000 + i]));
+    },
     async crearHoja(id, nombre) {
       escrituras.push({ id, rango: `'${nombre}'!nueva` });
       docs[id][nombre] = [];
@@ -268,7 +271,7 @@ test('estado, notas (con fecha y promedio) y ajuste', async () => {
   assert.deepEqual(e.examenes.map((x) => x.id_examen), ['EX002', 'EX001']);
   assert.equal(e.ultimo.asignacion.C1, 'A');
   assert.deepEqual(e.ultimo.excluidos, ['C4']);
-  assert.deepEqual(e.registros, [{ curso: '6B', url: 'https://docs.google.com/spreadsheets/d/REG6B/edit', copia: false }]);
+  assert.deepEqual(e.registros, [{ curso: '6B', url: 'https://docs.google.com/spreadsheets/d/REG6B/edit#gid=1001', copia: false }]); // 2.ª pestaña: 3er Trimestre
 
   const n = await ops.notas({ nivel: 'Sexto', paralelo: 'B' });
   const k = n.columnas.find((c) => c.letra === 'K');
@@ -349,3 +352,9 @@ test('si la bitácora falla, las notas igual quedan en el registro y se avisa', 
   assert.equal(docs.REG6B['3er Trimestre'][11][10], 41);
 });
 
+
+test('estado: si no se puede leer las pestañas del registro, el enlace abre el documento sin más', async () => {
+  const { sheets, ops } = escenario();
+  sheets.pestanas = async () => { throw new Error('Google no responde'); };
+  assert.equal((await ops.estado()).registros[0].url, 'https://docs.google.com/spreadsheets/d/REG6B/edit');
+});

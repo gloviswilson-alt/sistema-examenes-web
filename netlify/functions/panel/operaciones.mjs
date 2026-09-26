@@ -137,9 +137,13 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
         notas_pasadas: Number(e.notas_pasadas) || 0,
         preguntas: jsonCelda(e.preguntas, []), asignacion: jsonCelda(e.asignacion, {}), excluidos: listaComas(e.excluidos)
       })).reverse();
-      // Enlaces de los registros configurados, para el botón "Registro" del panel.
-      const registros = Object.entries(hojas.registros).filter(([, id]) => id)
-        .map(([curso, id]) => ({ curso, url: `https://docs.google.com/spreadsheets/d/${id}/edit`, copia: !!hojas.registrosSonCopias }));
+      // Enlaces de los registros configurados, para el botón "Registro" del panel: abren directo en la pestaña
+      // del trimestre (si no se puede averiguar su número, abren el documento sin más).
+      const registros = await Promise.all(Object.entries(hojas.registros).filter(([, id]) => id).map(async ([curso, id]) => {
+        const gid = await sheets.pestanas(id).then((p) => p[HOJA_TRIMESTRE], () => undefined);
+        const url = `https://docs.google.com/spreadsheets/d/${id}/edit` + (gid !== undefined ? `#gid=${gid}` : '');
+        return { curso, url, copia: !!hojas.registrosSonCopias };
+      }));
       return { ultimo: examenes[0] || null, examenes, registros };
     },
 

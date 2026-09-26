@@ -78,6 +78,11 @@ export function crearSheets(credencialesJson) {
       const url = `${API}/${id}/values/${encodeURIComponent(hoja)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
       await pedir(url, { method: 'POST', body: JSON.stringify({ values: filas }) });
     },
+    // Número interno (gid) de cada pestaña del documento, por nombre: sirve para enlazar directo a una pestaña.
+    async pestanas(id) {
+      const datos = await pedir(`${API}/${id}?fields=sheets.properties(sheetId,title)`);
+      return Object.fromEntries((datos.sheets || []).map((h) => [h.properties.title, h.properties.sheetId]));
+    },
     // Agrega una hoja (pestaña) nueva al documento.
     async crearHoja(id, nombre) {
       await pedir(`${API}/${id}:batchUpdate`, {

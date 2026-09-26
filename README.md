@@ -44,7 +44,7 @@ Respuesta: `{ "ok": true, ... }` o `{ "ok": false, "error": "..." }`.
 
 | operacion | Datos | Devuelve |
 |---|---|---|
-| `estado` | — | `ultimo` y `examenes` (todos, el más nuevo primero, con preguntas, asignación y excluidos para reimprimir) y `registros` (enlace de cada registro configurado, para el botón "Registro") |
+| `estado` | — | `ultimo` y `examenes` (todos, el más nuevo primero, con preguntas, asignación y excluidos para reimprimir) y `registros` (enlace de cada registro configurado, directo a la pestaña `3er Trimestre`, para el botón "Registro") |
 | `banco` | `nivel`, `tema?` | `temas`, `preguntas` (por `codigo`, con sus `formas`: enunciado sin signo, opciones y `clave`; se ocultan las familias con 4 formas iguales) |
 | `guardar` | `fecha, nivel, paralelos[], tema, duracion?, columna_registro, preguntas[{codigo, puntaje, espacio}], excluidos[]?` | `id_examen` (`EX001`…), `asignacion` (carnet → forma) |
 | `cambiar` | `id_examen`, `columna_registro?`, `excluidos[]?` | lo cambiado |

@@ -442,16 +442,19 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
       return { celda, anterior, nota, bitacora };
     },
 
-    // Anula un examen que todavía no tiene notas pasadas: queda marcado "anulado" en Examenes (la fila no
-    // se borra, así el número no se reutiliza) y deja libre su columna. Bajo el mismo bloqueo que usa "pasar".
-    async anular({ id_examen }) {
+    // Anula un examen: queda marcado "anulado" en Examenes (la fila no se borra, así el número no se reutiliza),
+    // deja de aceptar notas y deja libre su columna. Si ya tiene notas pasadas hace falta conNotas (el panel lo
+    // pide tras dos confirmaciones); esas notas NO se borran del registro. Bajo el mismo bloqueo que usa "pasar".
+    async anular({ id_examen, conNotas }) {
       const { ex } = await examenPorId(id_examen, { aunAnulado: true });
       const liberar = await almacen.bloquear(`examen-${ex.id_examen}`);
       if (!liberar) falla('El examen está ocupado, intenta de nuevo en unos segundos');
       try {
         const { t, ex: fresco } = await examenPorId(id_examen, { aunAnulado: true });
         if (anulado(fresco)) falla(`El examen ${fresco.id_examen} ya estaba anulado`);
-        if ((Number(fresco.notas_pasadas) || 0) > 0) falla(`El examen ${fresco.id_examen} ya tiene notas en el registro; no se puede anular`);
+        if ((Number(fresco.notas_pasadas) || 0) > 0 && conNotas !== true) {
+          falla(`El examen ${fresco.id_examen} ya tiene notas en el registro; hay que confirmar que se anula igual`);
+        }
         await escribirCeldasExamen(t, fresco, { estado: 'anulado' });
         return { id_examen: fresco.id_examen, estado: 'anulado' };
       } finally {

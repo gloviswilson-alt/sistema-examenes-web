@@ -52,7 +52,7 @@ Respuesta: `{ "ok": true, ... }` o `{ "ok": false, "error": "..." }`.
 | `notas` | `nivel`, `paralelo` | `alumnos` del curso y `columnas` I–R: encabezado, cuántas notas, su promedio, `valores` (lo que muestra cada celda, por n.º de lista) y qué exámenes la usan (con fecha) |
 | `pasar` | `id_examen`, `notas[{carnet, nota, leida?, origen?}]` (nota entera de 2 a 45; `origen` = `foto`, `corregida` o `a mano`) | `escritas`, `resultados` por alumno (`escrita`, `ocupada`, `rechazada`, `no escrita`) y `bitacora` (si se pudo anotar) |
 | `ajuste` | `trimestre?`, `profesor?` (sin datos solo lee) | ajustes guardados |
-| `anular` | `id_examen` | lo marca `anulado` en Examenes, solo si no tiene notas pasadas (la fila no se borra) |
+| `anular` | `id_examen`, `conNotas?` | lo marca `anulado` en Examenes (la fila no se borra). Si ya tiene notas pasadas hace falta `conNotas: true` (el panel lo pide tras dos confirmaciones, tecleando el código); esas notas no se borran del registro |
 | `corregir` | `id_examen`, `carnet`, `nota`, `motivo?` | `celda`, `anterior`, `nota`, `bitacora`: reemplaza la nota de ese alumno en el registro (única vía que escribe sobre una nota; nunca sobre una fórmula) y la anota en la Bitácora con la anterior y el motivo |
 
 En el selector del panel, una columna está ocupada si tiene notas o si ya está asignada a otro

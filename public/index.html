@@ -509,7 +509,7 @@
           </sc-for>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 22px 20px">
-          <button sc-camel-on-click="{{ exVerAnular }}" style="display:{{ exVerAnularVer }};border:0;background:transparent;color:#A65543;font:inherit;font-size:13.5px;text-decoration:underline;text-underline-offset:4px;cursor:pointer;padding:0">Anular examen</button>
+          <button sc-camel-on-click="{{ exVerAnular }}" style="border:0;background:transparent;color:#A65543;font:inherit;font-size:13.5px;text-decoration:underline;text-underline-offset:4px;cursor:pointer;padding:0">Anular examen</button>
           <span style="display:flex;gap:10px;margin-left:auto">
             <button sc-camel-on-click="{{ exVerCerrar }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:16px;padding:11px 18px;font:inherit;font-size:14px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">Cerrar</button>
             <button sc-camel-on-click="{{ exVerReimprimir }}" style="border:0;background:#C99B52;color:#3B2A0C;border-radius:16px;padding:11px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#BC8C43">{{ exVerReimprimirTexto }}</button>
@@ -584,9 +584,12 @@
           </sc-for>
         </div>
         <div style="margin-top:12px;padding:11px 13px;border-radius:14px;background:{{ dlgNotaFondo }};color:{{ dlgNotaTinta }};font-size:13px;line-height:1.5">{{ dlgNota }}</div>
+        <sc-if value="{{ dlgPideTexto }}" hint-placeholder-val="{{ false }}">
+          <input type="text" value="{{ dlgTexto }}" sc-camel-on-change="{{ setDlgTexto }}" placeholder="{{ dlgTextoAyuda }}" autocomplete="off" style="width:100%;box-sizing:border-box;margin-top:12px;border:1.5px solid #E2DACB;border-radius:12px;padding:10px 12px;font:inherit;font-size:15px;letter-spacing:0.08em;text-transform:uppercase;background:#fff">
+        </sc-if>
         <div style="display:flex;justify-content:flex-end;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px">
           <button sc-camel-on-click="{{ dlgNo }}" style="border:0;background:transparent;color:#6E7B74;font:inherit;font-size:13.5px;text-decoration:underline;text-underline-offset:4px;cursor:pointer">{{ dlgNoTexto }}</button>
-          <button sc-camel-on-click="{{ dlgSi }}" style="border:0;background:{{ dlgSiFondo }};color:#FBF9F5;border-radius:16px;padding:11px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer">{{ dlgSiTexto }}</button>
+          <button sc-camel-on-click="{{ dlgSi }}" style="border:0;background:{{ dlgSiFondo }};color:#FBF9F5;border-radius:16px;padding:11px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;opacity:{{ dlgSiOpacidad }}">{{ dlgSiTexto }}</button>
         </div>
       </div>
     </div>
@@ -695,8 +698,9 @@ class Component extends DCLogic {
     imprFuera: [],
     // Ventana "A quién imprimir": qué lista se edita ("imprFuera" al crear, "impFuera" al imprimir) y su copia para Cancelar.
     eligeFuera: null, respaldoFuera: [],
-    // Ventana de confirmación: { titulo, lineas, nota, peligro, si, no, accion } o null.
-    dialogo: null, anulando: false,
+    // Ventana de confirmación: { titulo, lineas, nota, peligro, si, no, accion, escribir? } o null.
+    // escribir: texto que hay que teclear para habilitar el botón (confirmación final); dlgTexto, lo tecleado.
+    dialogo: null, dlgTexto: "", anulando: false,
     // Botón "Registro": enlaces a los registros en Google Sheets y si su ventana está abierta.
     enlacesRegistro: [], verRegistros: false
   };
@@ -804,8 +808,6 @@ class Component extends DCLogic {
       exVerCerrar: () => this.setState({ exVer: null }),
       exVerReimprimir: () => { this.setState({ exVer: null }); this.reimprimir(x); },
       exVerReimprimirTexto: s.preparando === x.id_examen ? "Preparando…" : "Imprimir de nuevo",
-      // Solo se puede anular mientras no haya notas en el registro (el backend lo vuelve a comprobar).
-      exVerAnularVer: conNotas ? "none" : "inline-block",
       exVerAnular: () => this.pedirAnular(x)
     };
   }
@@ -840,8 +842,10 @@ class Component extends DCLogic {
     }
   };
 
+  // Sin notas: una advertencia. Con notas: advertencia y confirmación final tecleando el código del examen.
   pedirAnular = (ex) => {
-    this.setState({ dialogo: {
+    if (ex.notas_pasadas > 0) return this.pedirAnularConNotas(ex);
+    this.setState({ dlgTexto: "", dialogo: {
       titulo: "¿Anular " + ex.id_examen + "?",
       lineas: [
         { k: "Examen", v: ex.tema }, { k: "Curso", v: ex.nivel + " " + ex.paralelos.join(" y ") },
@@ -850,15 +854,36 @@ class Component extends DCLogic {
       nota: "Atención: el examen desaparecerá de la lista y la columna " + ex.columna_registro + " quedará libre para otro examen. " +
         "Las hojas ya impresas dejarán de servir: si fotografías una, el panel no pasará su nota. Esto no se puede deshacer desde el panel.",
       peligro: true, si: "Sí, anular", no: "No, dejarlo",
-      accion: () => this.anularExamen(ex)
+      accion: () => this.anularExamen(ex, false)
     } });
   };
 
-  anularExamen = async (ex) => {
+  pedirAnularConNotas = (ex) => {
+    const n = ex.notas_pasadas, notas = n + (n === 1 ? " nota" : " notas");
+    this.setState({ dlgTexto: "", dialogo: {
+      titulo: "Atención: " + ex.id_examen + " ya tiene " + notas,
+      lineas: [
+        { k: "Examen", v: ex.tema }, { k: "Curso", v: ex.nivel + " " + ex.paralelos.join(" y ") },
+        { k: "Fecha", v: fechaCorta(ex.fecha) }, { k: "Notas en el registro", v: notas + " · columna " + ex.columna_registro }
+      ],
+      nota: "Anular este examen NO borra esas " + notas + ": quedan en la columna " + ex.columna_registro + " de tu registro (si quieres quitarlas, hazlo a mano). " +
+        "El examen desaparecerá del panel y dejará de aceptar notas: ni fotos ni correcciones.",
+      peligro: true, si: "Entiendo, continuar", no: "No, dejarlo",
+      accion: () => this.setState({ dlgTexto: "", dialogo: {
+        titulo: "Confirmación final",
+        lineas: [{ k: "Se anulará", v: ex.id_examen + " · " + ex.tema }],
+        nota: "Esto no se puede deshacer desde el panel. Para confirmar, escribe el código del examen: " + ex.id_examen + ".",
+        peligro: true, si: "Anular " + ex.id_examen, no: "Cancelar", escribir: ex.id_examen,
+        accion: () => this.anularExamen(ex, true)
+      } })
+    } });
+  };
+
+  anularExamen = async (ex, conNotas) => {
     if (this.state.anulando) return;
     this.setState({ anulando: true });
     try {
-      await this.llamar("anular", { id_examen: ex.id_examen });
+      await this.llamar("anular", { id_examen: ex.id_examen, conNotas });
       // La columna quedó libre: los registros se vuelven a leer cuando se necesiten.
       this.setState({ dialogo: null, exVer: null, registros: {} });
       this.asegurarRegistro(nivelDe(this.state.filtro), paralelosDe(this.state.filtro)[0], true);
@@ -1277,6 +1302,7 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state;
     const par = paralelosDe(s.filtro)[0]; // paralelo elegido en Exámenes
+    const dlgListo = !(s.dialogo && s.dialogo.escribir) || s.dlgTexto.trim().toUpperCase() === s.dialogo.escribir;
     const v = (n) => (s.vista === n ? "block" : "none");
     const u = s.ultimo;
     const nav = (n) => (s.vista === n ? "#1D4B43" : "#9AA69F");
@@ -1528,7 +1554,16 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
       dlgSiFondo: s.dialogo && s.dialogo.peligro ? "#A65543" : "#1D4B43",
       dlgSiTexto: s.anulando ? "Anulando…" : s.dialogo ? s.dialogo.si : "",
       dlgNoTexto: s.dialogo ? s.dialogo.no : "",
-      dlgSi: () => s.dialogo && s.dialogo.accion(),
+      dlgPideTexto: !!(s.dialogo && s.dialogo.escribir),
+      dlgTexto: s.dlgTexto,
+      dlgTextoAyuda: s.dialogo && s.dialogo.escribir ? "Escribe " + s.dialogo.escribir : "",
+      setDlgTexto: (e) => this.setState({ dlgTexto: e.target.value }),
+      dlgSiOpacidad: dlgListo ? 1 : 0.4,
+      dlgSi: () => {
+        if (!s.dialogo) return;
+        if (!dlgListo) return this.avisar("Escribe " + s.dialogo.escribir + " para confirmar.");
+        s.dialogo.accion();
+      },
       dlgNo: () => this.setState({ dialogo: null }),
       guardarTexto: s.guardando ? "Guardando…" : "Guardar examen",
 

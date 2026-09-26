@@ -45,7 +45,7 @@ Respuesta: `{ "ok": true, ... }` o `{ "ok": false, "error": "..." }`.
 | operacion | Datos | Devuelve |
 |---|---|---|
 | `estado` | — | `ultimo` y `examenes` (todos, el más nuevo primero, con preguntas, asignación y excluidos para reimprimir) y `registros` (enlace de cada registro configurado, para el botón "Registro") |
-| `banco` | `nivel`, `tema?` | `temas`, `preguntas` (por `codigo`, con sus `formas`; el enunciado ya trae el signo de la clave; se ocultan las familias con 4 formas iguales) |
+| `banco` | `nivel`, `tema?` | `temas`, `preguntas` (por `codigo`, con sus `formas`: enunciado sin signo, opciones y `clave`; se ocultan las familias con 4 formas iguales) |
 | `guardar` | `fecha, nivel, paralelos[], tema, duracion?, columna_registro, preguntas[{codigo, puntaje, espacio}], excluidos[]?` | `id_examen` (`EX001`…), `asignacion` (carnet → forma) |
 | `cambiar` | `id_examen`, `columna_registro?`, `excluidos[]?` | lo cambiado |
 | `notas` | `nivel`, `paralelo` | `alumnos` del curso y `columnas` I–R: encabezado, cuántas notas, su promedio, `valores` (lo que muestra cada celda, por n.º de lista) y qué exámenes la usan (con fecha) |
@@ -60,7 +60,10 @@ Reglas de `guardar`: de 3 a 10 preguntas, puntajes que suman 45, `espacio` = `si
 o `grande`, y cada familia con sus 4 formas. Las formas se reparten en partes iguales y se
 barajan dentro de la lista de cada paralelo.
 
-Clave en el signo final del enunciado: A punto, B coma, C dos puntos, D sin signo.
+Clave en el signo final del enunciado: A punto, B coma, C dos puntos, D sin signo. Al armar la hoja
+(`hoja.js`, `letrasCorrectas`) la opción correcta se mueve a una letra elegida para que, en cada forma, las
+respuestas correctas queden repartidas en partes iguales entre A, B, C y D (el banco de Segundo trae la correcta
+siempre en la letra de su forma). La elección depende solo del examen y la forma: reimprimir sale idéntico.
 
 En la hoja Examenes, `paralelos` y `excluidos` se guardan separados por comas;
 `preguntas` y `asignacion`, como JSON.

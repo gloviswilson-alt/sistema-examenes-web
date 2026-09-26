@@ -6,7 +6,6 @@ const PUNTAJE_TOTAL = 45;
 const NOTA_MINIMA = 2;
 const FORMAS = ['A', 'B', 'C', 'D'];
 // Signo final del enunciado según la respuesta correcta (clave fija del trimestre).
-const SIGNOS = { A: '.', B: ',', C: ':', D: '' };
 const ESPACIOS = ['sin', 'pequeño', 'grande'];
 const PREGUNTAS_MIN = 3;
 const PREGUNTAS_MAX = 10;
@@ -153,12 +152,13 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
         if (texto(tema) && !igual(f.tema, tema)) continue;
         const cod = texto(f.codigo);
         const clave = texto(f.clave).toUpperCase();
-        if (!(clave in SIGNOS)) falla(`Clave inválida en ${cod} forma ${f.forma}: "${f.clave}"`);
+        if (!FORMAS.includes(clave)) falla(`Clave inválida en ${cod} forma ${f.forma}: "${f.clave}"`);
         if (!preguntas.has(cod)) {
           preguntas.set(cod, { codigo: cod, tema: texto(f.tema), dificultad: f.dificultad, tipo: f.tipo, formas: {} });
         }
+        // El enunciado va sin signo: la hoja reubica la respuesta correcta y pone el signo de su letra final.
         preguntas.get(cod).formas[texto(f.forma).toUpperCase()] = {
-          enunciado: texto(f.enunciado) + SIGNOS[clave],
+          enunciado: texto(f.enunciado),
           opciones: [f.opcion_a, f.opcion_b, f.opcion_c, f.opcion_d],
           clave,
           solucion: f.solucion
@@ -167,7 +167,7 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
       // Una práctica con el mismo enunciado en sus 4 formas no sirve contra la copia: se oculta.
       // (Las teóricas repiten el enunciado a propósito; cambian el orden de las opciones.)
       const utiles = [...preguntas.values()].filter((p) => !igual(p.tipo, 'practica') ||
-        new Set(Object.values(p.formas).map((f) => texto(f.enunciado).replace(/[.,:]$/, ''))).size > 1);
+        new Set(Object.values(p.formas).map((f) => f.enunciado)).size > 1);
       return { temas, preguntas: utiles };
     },
 

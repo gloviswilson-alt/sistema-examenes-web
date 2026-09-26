@@ -250,14 +250,14 @@ test('cambiar actualiza columna y excluidos del examen', async () => {
   await assert.rejects(ops.cambiar({ id_examen: 'EX999', columna_registro: 'I' }), /No existe/);
 });
 
-test('banco: signo de la clave al final del enunciado y familias iguales ocultas', async () => {
+test('banco: enunciado sin signo con su clave, y familias iguales ocultas', async () => {
   const { ops } = escenario();
   const b = await ops.banco({ nivel: 'sexto', tema: 'la parábola' });
   assert.deepEqual(b.temas, ['La parábola', 'La elipse']);
   assert.deepEqual(b.preguntas.map((p) => p.codigo), ['T12-F01', 'T12-F02', 'T12-F04']); // T12-F03 oculta; la teórica no
   const f1 = b.preguntas[0].formas;
-  assert.deepEqual(['A', 'B', 'C', 'D'].map((f) => f1[f].enunciado), ['Vértice A.', 'Vértice B,', 'Vértice C:', 'Vértice D']);
-  assert.equal(b.preguntas[1].formas.A.enunciado, 'Foco A'); // clave D: sin signo
+  assert.deepEqual(['A', 'B', 'C', 'D'].map((f) => [f1[f].enunciado, f1[f].clave]), [['Vértice A', 'A'], ['Vértice B', 'B'], ['Vértice C', 'C'], ['Vértice D', 'D']]);
+  assert.equal(b.preguntas[1].formas.A.clave, 'D');
 });
 
 test('estado, notas (con fecha y promedio) y ajuste', async () => {

@@ -17,6 +17,21 @@
   const textoQR = (idExamen, carnet, numero, forma) =>
     idExamen + "-" + carnet + "-" + String(numero).padStart(2, "0") + forma;
 
+  // ---- Respuesta correcta: posición y signo ----
+  // Signo al final del enunciado según la letra de la respuesta correcta (clave para el profesor).
+  const SIGNOS = { A: ".", B: ",", C: ":", D: "" };
+  // Letra de la respuesta correcta de cada pregunta en una forma: A, B, C y D repartidas en partes
+  // iguales y barajadas. Depende solo del examen y la forma, así "Imprimir de nuevo" sale idéntico.
+  // (El banco puede traer la correcta siempre en la misma letra; aquí no importa.)
+  function letrasCorrectas(idExamen, forma, n) {
+    let h = 2166136261; // FNV-1a de "EX001-A" → semilla del azar
+    for (const c of idExamen + "-" + forma) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+    const azar = () => { h = Math.imul(h ^ (h >>> 15), 2246822507) ^ Math.imul(h ^ (h >>> 13), 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; };
+    const letras = Array.from({ length: n }, (_, i) => "ABCD"[i % 4]);
+    for (let i = n - 1; i > 0; i--) { const j = Math.floor(azar() * (i + 1)); [letras[i], letras[j]] = [letras[j], letras[i]]; }
+    return letras;
+  }
+
   // ---- QR versión 1 (21×21), modo alfanumérico ----
   const ALFA = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
   // Nivel de corrección → [bits del formato, palabras de datos, palabras de corrección] (versión 1).
@@ -214,12 +229,15 @@ html, body { margin: 0; background: #fff }
     return h + '<div class="nota"><b>Nota</b><span>/45</span></div></div>';
   }
 
-  function bloquePregunta(n, p, forma) {
+  // La opción correcta pasa a la letra `letra`; las demás conservan su orden.
+  function bloquePregunta(n, p, forma, letra) {
     const f = p.formas[forma];
-    const una = f.opciones.some((o) => String(o).length > 40);
+    const opciones = f.opciones.slice();
+    opciones.splice("ABCD".indexOf(letra), 0, opciones.splice("ABCD".indexOf(f.clave), 1)[0]);
+    const una = opciones.some((o) => String(o).length > 40);
     let h = '<div class="preg"><div class="num">' + String(n).padStart(2, "0") + '</div><div style="flex:1;min-width:0">' +
-      '<div class="enun"><span>' + esc(f.enunciado) + '</span><span class="pts">' + p.puntaje + ' pts</span></div><div class="ops' + (una ? " una" : "") + '">';
-    f.opciones.forEach((o, i) => { h += '<div class="op"><i>' + "ABCD"[i] + "</i><span>" + esc(o) + "</span></div>"; });
+      '<div class="enun"><span>' + esc(f.enunciado + SIGNOS[letra]) + '</span><span class="pts">' + p.puntaje + ' pts</span></div><div class="ops' + (una ? " una" : "") + '">';
+    opciones.forEach((o, i) => { h += '<div class="op"><i>' + "ABCD"[i] + "</i><span>" + esc(o) + "</span></div>"; });
     h += "</div>";
     const nl = LINEAS[p.espacio] || 0;
     if (nl) h += '<div class="lineas">' + "<div></div>".repeat(nl) + "</div>";
@@ -247,6 +265,7 @@ html, body { margin: 0; background: #fff }
     const pie = '<div class="pie"><span>' + esc(d.profesor) + '</span><span class="nro"></span></div>';
     for (const a of d.alumnos) {
       const forma = d.asignacion[a.carnet];
+      const letras = letrasCorrectas(d.id, forma, d.preguntas.length);
       const fecha = fechaCorta(d.fecha) + (d.duracion ? " &nbsp;·&nbsp; " + esc(d.duracion) : "");
       const kicker = "U.E. Niño Jesús II · Matemática · " + cursoCorto(d.nivel, a.par) + " · " + esc(d.trimestre);
       const paginas = [pagina(franja(textoQR(d.id, a.carnet, a.numero, forma)) +
@@ -261,7 +280,7 @@ html, body { margin: 0; background: #fff }
       };
       d.preguntas.forEach((p, i) => {
         let dest = paginas.at(-1).querySelector(".cuerpo");
-        dest.insertAdjacentHTML("beforeend", bloquePregunta(i + 1, p, forma));
+        dest.insertAdjacentHTML("beforeend", bloquePregunta(i + 1, p, forma, letras[i]));
         if (dest.scrollHeight > dest.clientHeight + 1 && dest.children.length > 1) continuar().appendChild(dest.lastElementChild);
       });
       // Espacio para la firma del estudiante al final del examen (abajo a la derecha de la última página).
@@ -303,5 +322,5 @@ html, body { margin: 0; background: #fff }
     return doc.querySelectorAll(".pag").length;
   }
 
-  window.Hoja = { G, RB, NOTA_MIN, NOTA_MAX, burbuja, textoQR, matrizQR, svgQR, armar, imprimir, CSS };
+  window.Hoja = { G, RB, NOTA_MIN, NOTA_MAX, burbuja, textoQR, matrizQR, svgQR, letrasCorrectas, armar, imprimir, CSS };
 })();

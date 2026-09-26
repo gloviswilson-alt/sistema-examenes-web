@@ -6,7 +6,7 @@ import { crearAlmacen } from './almacen.mjs';
 import { crearOperaciones, ErrorPanel } from './operaciones.mjs';
 import { HOJAS } from './hojas.mjs';
 
-const OPERACIONES = ['estado', 'banco', 'guardar', 'cambiar', 'notas', 'pasar', 'ajuste'];
+const OPERACIONES = ['estado', 'banco', 'guardar', 'cambiar', 'notas', 'pasar', 'ajuste', 'anular'];
 
 const responder = (estado, cuerpo) => Response.json(cuerpo, { status: estado });
 

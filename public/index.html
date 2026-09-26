@@ -273,7 +273,7 @@
               <div style="font-size:13px;color:#C5D3C8;margin-top:3px">{{ imprResumen }}</div>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap">
-              <button sc-camel-on-click="{{ guardarExamen }}" style="border:0;background:#C99B52;color:#3B2A0C;border-radius:16px;padding:12px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#BC8C43">{{ guardarTexto }}</button>
+              <button sc-camel-on-click="{{ revisarExamen }}" style="border:0;background:#C99B52;color:#3B2A0C;border-radius:16px;padding:12px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#BC8C43">{{ guardarTexto }}</button>
             </div>
           </div>
         </sc-if>
@@ -341,6 +341,7 @@
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
                   <button sc-camel-on-click="{{ x.reimprimir }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:13px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">{{ x.reimprimirTexto }}</button>
+                  <button sc-camel-on-click="{{ x.anular }}" style="display:{{ x.anularVer }};border:0;background:transparent;color:#A65543;font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:4px;cursor:pointer;padding:8px 6px">Anular examen</button>
                 </div>
               </div>
             </sc-if>
@@ -473,6 +474,28 @@
     </div>
   </sc-if>
 
+  <!-- Confirmación (revisar antes de guardar, anular un examen). -->
+  <sc-if value="{{ hayDialogo }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:55;background:rgba(27,33,30,.55);display:flex;align-items:center;justify-content:center;padding:16px">
+      <div style="background:#FBF9F5;width:min(520px,100%);max-height:100%;overflow-y:auto;border-radius:22px;box-shadow:0 24px 60px rgba(0,0,0,.28);padding:22px 22px 18px">
+        <div style="font-family:Prata,Georgia,serif;font-size:21px;color:#1D4B43">{{ dlgTitulo }}</div>
+        <div style="margin-top:12px">
+          <sc-for list="{{ dlgLineas }}" as="l" hint-placeholder-count="4">
+            <div style="display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-top:1px solid #E2DACB;font-size:14px">
+              <span style="color:#6E7B74">{{ l.k }}</span>
+              <span style="text-align:right;color:#22302C">{{ l.v }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:12px;padding:11px 13px;border-radius:14px;background:{{ dlgNotaFondo }};color:{{ dlgNotaTinta }};font-size:13px;line-height:1.5">{{ dlgNota }}</div>
+        <div style="display:flex;justify-content:flex-end;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px">
+          <button sc-camel-on-click="{{ dlgNo }}" style="border:0;background:transparent;color:#6E7B74;font:inherit;font-size:13.5px;text-decoration:underline;text-underline-offset:4px;cursor:pointer">{{ dlgNoTexto }}</button>
+          <button sc-camel-on-click="{{ dlgSi }}" style="border:0;background:{{ dlgSiFondo }};color:#FBF9F5;border-radius:16px;padding:11px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer">{{ dlgSiTexto }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ aviso }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#22302C;color:#fff;padding:11px 18px;border-radius:14px;font-size:13.5px;z-index:60;max-width:90vw">{{ aviso }}</div>
   </sc-if>
@@ -560,7 +583,9 @@ class Component extends DCLogic {
     lectura: [], problemas: [], diag: [], verDiag: false, leyendo: "", pasando: false,
     imprFuera: [],
     // Ventana "A quién imprimir": qué lista se edita ("imprFuera" al crear, "impFuera" al imprimir) y su copia para Cancelar.
-    eligeFuera: null, respaldoFuera: []
+    eligeFuera: null, respaldoFuera: [],
+    // Ventana de confirmación: { titulo, lineas, nota, peligro, si, no, accion } o null.
+    dialogo: null, anulando: false
   };
 
   ir = (vista) => () => {
@@ -584,6 +609,56 @@ class Component extends DCLogic {
       this.llamar("notas", { nivel, paralelo: par })
         .then((r) => ({ columnas: r.columnas, alumnos: r.alumnos }), (e) => ({ error: e.message }))
         .then((reg) => this.setState((st) => ({ registros: { ...st.registros, [k]: reg } })));
+    }
+  };
+
+  // Antes de guardar se muestra un resumen: después ya no se pueden cambiar las preguntas.
+  revisarExamen = () => {
+    const s = this.state, v = this.validarExamen();
+    if (v.error) return this.avisar(v.error);
+    const total = (this.columnasCurso().alumnos || []).length;
+    this.setState({ dialogo: {
+      titulo: "Revisa antes de guardar",
+      lineas: [
+        { k: "Curso", v: s.curso }, { k: "Examen", v: v.nombre }, { k: "Fecha", v: fechaCorta(s.fecha) },
+        { k: "Duración", v: s.minutos ? s.minutos + " min" : "sin indicar" },
+        { k: "Preguntas", v: s.hoja.length + " · 45 puntos" }, { k: "Columna del registro", v: v.col },
+        { k: "A quién imprimir", v: this.textoFuera(total, s.imprFuera.length) }
+      ],
+      nota: "Después de guardar ya no se pueden cambiar las preguntas ni sus puntajes. Si hace falta, se puede anular mientras no tenga notas en el registro.",
+      si: "Guardar examen", no: "Seguir editando",
+      accion: () => { this.setState({ dialogo: null }); this.guardarExamen(); }
+    } });
+  };
+
+  pedirAnular = (ex) => {
+    this.setState({ dialogo: {
+      titulo: "¿Anular " + ex.id_examen + "?",
+      lineas: [
+        { k: "Examen", v: ex.tema }, { k: "Curso", v: ex.nivel + " " + ex.paralelos.join(" y ") },
+        { k: "Fecha", v: fechaCorta(ex.fecha) }, { k: "Columna del registro", v: ex.columna_registro }
+      ],
+      nota: "Atención: el examen desaparecerá de la lista y la columna " + ex.columna_registro + " quedará libre para otro examen. " +
+        "Las hojas ya impresas dejarán de servir: si fotografías una, el panel no pasará su nota. Esto no se puede deshacer desde el panel.",
+      peligro: true, si: "Sí, anular", no: "No, dejarlo",
+      accion: () => this.anularExamen(ex)
+    } });
+  };
+
+  anularExamen = async (ex) => {
+    if (this.state.anulando) return;
+    this.setState({ anulando: true });
+    try {
+      await this.llamar("anular", { id_examen: ex.id_examen });
+      // La columna quedó libre: los registros se vuelven a leer cuando se necesiten.
+      this.setState({ dialogo: null, abierto: null, registros: {} });
+      this.avisar(ex.id_examen + " anulado.");
+      this.cargar();
+    } catch (e) {
+      this.setState({ dialogo: null });
+      this.avisar(e.message);
+    } finally {
+      this.setState({ anulando: false });
     }
   };
 
@@ -854,6 +929,7 @@ class Component extends DCLogic {
     this._esc = (e) => {
       if (e.key !== "Escape") return;
       const st = this.state;
+      if (st.dialogo) return this.setState({ dialogo: null });
       this.setState(st.eligeFuera ? { [st.eligeFuera]: st.respaldoFuera, eligeFuera: null } : { calAbierto: false, tema: null, sel: [] });
     };
     document.addEventListener("click", this._fuera, true);
@@ -1206,7 +1282,10 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
             pasadas: x.notas_pasadas,
             columna: x.columna_registro,
             reimprimir: () => this.reimprimir(x),
-            reimprimirTexto: s.preparando === x.id_examen ? "Preparando…" : "Imprimir de nuevo"
+            reimprimirTexto: s.preparando === x.id_examen ? "Preparando…" : "Imprimir de nuevo",
+            // Solo se puede anular mientras no haya notas en el registro (el backend lo vuelve a comprobar).
+            anularVer: conNotas ? "none" : "inline-block",
+            anular: () => this.pedirAnular(x)
           };
         }),
 
@@ -1215,7 +1294,18 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
       ...this.ventanaAlumnos(s.eligeFuera === "impFuera" ? (s.impresion ? s.impresion.alumnos : []) : lista),
       totalAlumnos: imprimir + (imprimir === 1 ? " alumno" : " alumnos"),
       imprResumen: s.hoja.length + " preguntas · " + suma + "/45 puntos · columna " + colSel,
-      guardarExamen: this.guardarExamen,
+      revisarExamen: this.revisarExamen,
+      hayDialogo: !!s.dialogo,
+      dlgTitulo: s.dialogo ? s.dialogo.titulo : "",
+      dlgLineas: s.dialogo ? s.dialogo.lineas : [],
+      dlgNota: s.dialogo ? s.dialogo.nota : "",
+      dlgNotaFondo: s.dialogo && s.dialogo.peligro ? "#F2E1DB" : "#F2E5CF",
+      dlgNotaTinta: s.dialogo && s.dialogo.peligro ? "#A65543" : "#6B5320",
+      dlgSiFondo: s.dialogo && s.dialogo.peligro ? "#A65543" : "#1D4B43",
+      dlgSiTexto: s.anulando ? "Anulando…" : s.dialogo ? s.dialogo.si : "",
+      dlgNoTexto: s.dialogo ? s.dialogo.no : "",
+      dlgSi: () => s.dialogo && s.dialogo.accion(),
+      dlgNo: () => this.setState({ dialogo: null }),
       guardarTexto: s.guardando ? "Guardando…" : "Guardar examen",
 
       hayProblemas: s.problemas.length > 0,

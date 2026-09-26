@@ -283,3 +283,28 @@ test('estado, notas (con fecha y promedio) y ajuste', async () => {
   assert.deepEqual(await ops.ajuste({ profesor: 'Prof. Glovis' }), { trimestre: 'Tercer trimestre', profesor: 'Prof. Glovis' });
   await assert.rejects(ops.ajuste({ profesor: '  ' }), /no es válido/);
 });
+
+test('anular: solo sin notas pasadas; el anulado desaparece de la lista, libera su columna y no acepta notas', async () => {
+  const { docs, ops, almacen } = escenario();
+  await assert.rejects(ops.anular({ id_examen: 'EX001' }), /ya tiene notas/);
+  assert.equal(docs.SIS.Examenes[1][12], 'creado');
+
+  assert.deepEqual(await ops.anular({ id_examen: 'ex002' }), { id_examen: 'EX002', estado: 'anulado' });
+  assert.equal(docs.SIS.Examenes[2][12], 'anulado');
+  assert.equal(almacen.bloqueos.size, 0);
+  await assert.rejects(ops.anular({ id_examen: 'EX002' }), /ya estaba anulado/);
+
+  const e = await ops.estado();
+  assert.deepEqual(e.examenes.map((x) => x.id_examen), ['EX001']);
+  assert.equal(e.ultimo.id_examen, 'EX001');
+  const n = await ops.notas({ nivel: 'Sexto', paralelo: 'B' });
+  assert.deepEqual(n.columnas.find((c) => c.letra === 'K').examenes, []);
+  await assert.rejects(ops.pasar({ id_examen: 'EX002', notas: [{ carnet: 'C1', nota: 20 }] }), /anulado/);
+  await assert.rejects(ops.cambiar({ id_examen: 'EX002', columna_registro: 'M' }), /anulado/);
+});
+
+test('anular no hace nada si el examen está bloqueado por un envío de notas', async () => {
+  const { docs, ops } = escenario({ ocupado: ['examen-EX002'] });
+  await assert.rejects(ops.anular({ id_examen: 'EX002' }), /ocupado/);
+  assert.equal(docs.SIS.Examenes[2][12], 'creado');
+});

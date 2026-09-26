@@ -85,10 +85,13 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
     return id;
   }
 
-  async function examenPorId(id) {
+  const anulado = (e) => igual(e.estado, 'anulado');
+
+  async function examenPorId(id, { aunAnulado = false } = {}) {
     const t = await leerTabla('Examenes');
     const ex = t.filas.find((f) => igual(f.id_examen, id));
     if (!ex) falla(`No existe el examen ${id}`);
+    if (anulado(ex) && !aunAnulado) falla(`El examen ${ex.id_examen} está anulado`);
     return { t, ex };
   }
 
@@ -108,10 +111,10 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
 
   return {
     // Último examen para Inicio y la lista completa (la más nueva primero) para la pantalla Exámenes;
-    // cada examen trae lo necesario para volver a imprimirlo igual.
+    // cada examen trae lo necesario para volver a imprimirlo igual. Los anulados no se muestran.
     async estado() {
       const { filas } = await leerTabla('Examenes');
-      const examenes = filas.map((e) => ({
+      const examenes = filas.filter((e) => !anulado(e)).map((e) => ({
         id_examen: e.id_examen, creado: e.creado, fecha: e.fecha, nivel: e.nivel, paralelos: listaComas(e.paralelos),
         tema: e.tema, duracion: e.duracion, columna_registro: e.columna_registro, estado: e.estado,
         notas_pasadas: Number(e.notas_pasadas) || 0,
@@ -231,7 +234,7 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
       const maxN = Math.max(0, ...del_curso.map((a) => Number(a.numero) || 0));
       const encabezados = (await sheets.leer(id, `'${HOJA_TRIMESTRE}'!I2:R2`, { formulas: true }))[0] || [];
       const celdas = maxN ? await sheets.leer(id, `'${HOJA_TRIMESTRE}'!I12:R${11 + maxN}`, { formulas: true }) : [];
-      const examenes = (await leerTabla('Examenes')).filas.filter((e) =>
+      const examenes = (await leerTabla('Examenes')).filas.filter((e) => !anulado(e) &&
         igual(e.nivel, nivel) && listaComas(e.paralelos).some((p) => igual(p, paralelo)));
       return {
         curso,
@@ -340,6 +343,23 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
         }
       }
       return { escritas, resultados };
+    },
+
+    // Anula un examen que todavía no tiene notas pasadas: queda marcado "anulado" en Examenes (la fila no
+    // se borra, así el número no se reutiliza) y deja libre su columna. Bajo el mismo bloqueo que usa "pasar".
+    async anular({ id_examen }) {
+      const { ex } = await examenPorId(id_examen, { aunAnulado: true });
+      const liberar = await almacen.bloquear(`examen-${ex.id_examen}`);
+      if (!liberar) falla('El examen está ocupado, intenta de nuevo en unos segundos');
+      try {
+        const { t, ex: fresco } = await examenPorId(id_examen, { aunAnulado: true });
+        if (anulado(fresco)) falla(`El examen ${fresco.id_examen} ya estaba anulado`);
+        if ((Number(fresco.notas_pasadas) || 0) > 0) falla(`El examen ${fresco.id_examen} ya tiene notas en el registro; no se puede anular`);
+        await escribirCeldasExamen(t, fresco, { estado: 'anulado' });
+        return { id_examen: fresco.id_examen, estado: 'anulado' };
+      } finally {
+        await liberar();
+      }
     },
 
     async ajuste({ trimestre, profesor }) {

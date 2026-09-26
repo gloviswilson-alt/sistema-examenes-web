@@ -20,7 +20,7 @@ Panel web y backend del sistema de exámenes de un profesor de matemática.
 - `public/lector.js`: lector de fotos en el navegador (BarcodeDetector de Chrome para el QR; las
   burbujas se leen con esa geometría). La foto nunca sale del celular.
 - `public/prueba.html`: prueba de conexión (solo lectura) del documento del sistema y los 4 registros.
-- `netlify/functions/panel/`: `panel.mjs` (entrada y contraseña), `operaciones.mjs` (las 7 operaciones),
+- `netlify/functions/panel/`: `panel.mjs` (entrada y contraseña), `operaciones.mjs` (las 8 operaciones),
   `sheets.mjs` (Google Sheets), `almacen.mjs` (ajustes y bloqueos en Netlify Blobs),
   `hojas.mjs` (IDs del documento del sistema y de los 4 registros).
 - `test/`: pruebas con hojas simuladas (`npm test`).
@@ -50,6 +50,7 @@ Respuesta: `{ "ok": true, ... }` o `{ "ok": false, "error": "..." }`.
 | `notas` | `nivel`, `paralelo` | `alumnos` del curso y `columnas` I–R: encabezado, cuántas notas y su promedio, y qué exámenes la usan (con fecha) |
 | `pasar` | `id_examen`, `notas[{carnet, nota}]` (nota entera de 2 a 45) | `escritas` y `resultados` por alumno (`escrita`, `ocupada`, `rechazada`, `no escrita`) |
 | `ajuste` | `trimestre?`, `profesor?` (sin datos solo lee) | ajustes guardados |
+| `anular` | `id_examen` | lo marca `anulado` en Examenes, solo si no tiene notas pasadas (la fila no se borra) |
 
 En el selector del panel, una columna está ocupada si tiene notas o si ya está asignada a otro
 examen de ese paralelo (así dos exámenes pendientes no comparten columna).
@@ -62,6 +63,9 @@ Clave en el signo final del enunciado: A punto, B coma, C dos puntos, D sin sign
 
 En la hoja Examenes, `paralelos` y `excluidos` se guardan separados por comas;
 `preguntas` y `asignacion`, como JSON.
+
+Un examen anulado no aparece en `estado`, no ocupa columna en `notas` y `pasar` y `cambiar` lo rechazan.
+Antes de guardar, el panel muestra un resumen para confirmar (después ya no se cambian las preguntas).
 
 ## Reglas de `pasar`
 

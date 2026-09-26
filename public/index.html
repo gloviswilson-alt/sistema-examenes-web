@@ -325,68 +325,45 @@
           </sc-for>
         </div>
       </div>
-      <!-- Parte del registro (dimensión del saber): solo las columnas de los exámenes hechos con el sistema. -->
-      <div style="background:#FBF9F5;border-radius:24px;padding:18px 0 12px;margin-bottom:14px">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding:0 22px 10px">
-          <div style="font-family:Prata,Georgia,serif;font-size:19px;color:#1D4B43">{{ tablaTitulo }}</div>
+      <!-- Parte del registro (dimensión del saber): solo las columnas de los exámenes hechos con el sistema.
+           Cuadrícula (no <table>: el navegador sacaría los sc-for fuera de la tabla). Se desplaza por dentro con
+           los exámenes fijos arriba, los nombres fijos a la izquierda y el resumen fijo abajo. -->
+      <div style="background:#FBF9F5;border-radius:24px;overflow:hidden;box-shadow:0 10px 30px rgba(29,75,67,.08)">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding:18px 22px 14px">
+          <div>
+            <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:0.14em;font-weight:500;color:#B08344">Dimensión del saber</div>
+            <div style="font-family:Prata,Georgia,serif;font-size:22px;color:#1D4B43;margin-top:2px">{{ tablaTitulo }}</div>
+          </div>
           <div style="font-size:12.5px;color:#6E7B74">{{ tablaNota }}</div>
         </div>
         <sc-if value="{{ hayTabla }}" hint-placeholder-val="{{ false }}">
-          <!-- Cuadrícula (no <table>: el navegador sacaría los sc-for fuera de la tabla). La 1.ª columna queda fija al desplazar. -->
-          <div style="overflow-x:auto;overscroll-behavior-x:contain">
+          <div style="overflow:auto;max-height:max(280px,calc(100dvh - 390px));overscroll-behavior:contain">
             <div style="display:grid;grid-template-columns:{{ tablaGrid }};font-size:13.5px;min-width:{{ tablaAncho }}">
-              <div style="position:sticky;left:0;background:#FBF9F5;padding:8px 10px 8px 22px;border-bottom:1.5px solid #1D4B43;font-size:10.5px;text-transform:uppercase;letter-spacing:0.12em;color:#9AA69F;display:flex;align-items:flex-end">Alumno</div>
+              <div style="position:sticky;top:0;left:0;z-index:3;background:#1D4B43;color:#C5D3C8;padding:12px 10px 12px 22px;font-size:10.5px;text-transform:uppercase;letter-spacing:0.12em;display:flex;align-items:flex-end">Alumno</div>
               <sc-for list="{{ tablaCols }}" as="c" hint-placeholder-count="2">
-                <div style="text-align:center;padding:8px 12px;border-bottom:1.5px solid #1D4B43">
-                  <span style="display:block;font-size:12.5px;font-weight:500;color:#1D4B43">{{ c.tema }}</span>
-                  <span style="display:block;font-size:11px;color:#9AA69F;margin-top:2px">{{ c.detalle }}</span>
-                </div>
+                <button sc-camel-on-click="{{ c.abrir }}" title="Ver el examen" style="position:sticky;top:0;z-index:2;background:#1D4B43;border:0;border-left:1px solid #2F5F55;padding:10px 10px;font:inherit;cursor:pointer;text-align:center;color:#F1EDE3" style-hover="background:#153931">
+                  <span style="display:block;font-size:12.5px;font-weight:500;line-height:1.25">{{ c.tema }}</span>
+                  <span style="display:inline-block;margin-top:5px;padding:2px 8px;border-radius:10px;background:#C99B52;color:#3B2A0C;font-size:10.5px;font-weight:500;white-space:nowrap">{{ c.detalle }}</span>
+                </button>
               </sc-for>
               <sc-for list="{{ tablaFilas }}" as="f" hint-placeholder-count="6">
-                <div style="position:sticky;left:0;background:#FBF9F5;padding:7px 10px 7px 22px;border-bottom:1px solid #E2DACB;display:flex;gap:6px;line-height:1.3"><span style="min-width:18px;color:#9AA69F;font-size:12px;flex:none">{{ f.n }}</span><span>{{ f.nombre }}</span></div>
+                <div style="position:sticky;left:0;z-index:1;background:{{ f.fondo }};padding:8px 10px 8px 22px;border-bottom:1px solid #EAE3D6;display:flex;gap:6px;line-height:1.3"><span style="min-width:18px;color:#9AA69F;font-size:12px;flex:none">{{ f.n }}</span><span>{{ f.nombre }}</span></div>
                 <sc-for list="{{ f.notas }}" as="v" hint-placeholder-count="2">
-                  <div style="text-align:center;padding:7px 10px;border-bottom:1px solid #E2DACB;font-family:{{ v.fuente }};font-size:{{ v.tam }};color:{{ v.tinta }};white-space:nowrap;display:flex;align-items:center;justify-content:center">{{ v.t }}</div>
+                  <div style="background:{{ f.fondo }};border-bottom:1px solid #EAE3D6;border-left:1px solid #EAE3D6;display:flex;align-items:center;justify-content:center;padding:6px">
+                    <span style="padding:{{ v.relleno }};border-radius:12px;background:{{ v.fondo }};font-family:{{ v.fuente }};font-size:{{ v.tam }};color:{{ v.tinta }};white-space:nowrap">{{ v.t }}</span>
+                  </div>
                 </sc-for>
               </sc-for>
-              <div style="position:sticky;left:0;background:#FBF9F5;padding:9px 10px 4px 22px;font-size:10.5px;text-transform:uppercase;letter-spacing:0.12em;color:#9AA69F">Promedio</div>
+              <div style="position:sticky;bottom:0;left:0;z-index:3;background:#F2E5CF;border-top:2px solid #C99B52;padding:10px 10px 10px 22px;font-size:10.5px;text-transform:uppercase;letter-spacing:0.12em;color:#7A5A1C;display:flex;flex-direction:column;justify-content:center;gap:3px"><span>Promedio</span><span style="text-transform:none;letter-spacing:0;font-size:12px">Dieron · no dieron</span></div>
               <sc-for list="{{ tablaCols }}" as="c" hint-placeholder-count="2">
-                <div style="text-align:center;padding:9px 12px 4px;font-family:Prata,serif;font-size:15px;color:#1D4B43">{{ c.promedio }}</div>
+                <div style="position:sticky;bottom:0;z-index:2;background:#F2E5CF;border-top:2px solid #C99B52;border-left:1px solid #E6D3AE;padding:8px 6px;text-align:center">
+                  <span style="display:block;font-family:Prata,serif;font-size:19px;color:#1D4B43;line-height:1.1">{{ c.promedio }}</span>
+                  <span style="display:block;font-size:11.5px;color:#7A5A1C;margin-top:3px;line-height:1.3">{{ c.resumen }}</span>
+                </div>
               </sc-for>
             </div>
           </div>
         </sc-if>
-      </div>
-
-      <div style="background:#FBF9F5;border-radius:24px;padding:6px 22px 10px">
-        <sc-for list="{{ examenes }}" as="x" hint-placeholder-count="3">
-          <div style="border-top:1px solid {{ x.linea }}">
-            <button sc-camel-on-click="{{ x.abrir }}" style="width:100%;text-align:left;display:grid;grid-template-columns:44px 1fr auto 16px;gap:15px;align-items:center;padding:16px 0;border:0;background:transparent;font:inherit;cursor:pointer">
-              <span style="width:44px;height:44px;border-radius:15px;background:{{ x.iconoFondo }};display:flex;align-items:center;justify-content:center;font-family:Prata,serif;font-size:15px;color:{{ x.iconoTinta }}">{{ x.inicial }}</span>
-              <span>
-                <span style="display:block;font-size:15.5px;font-weight:500">{{ x.titulo }}</span>
-                <span style="display:block;font-size:12.5px;color:#9AA69F;margin-top:1px">{{ x.meta }}</span>
-              </span>
-              <span style="text-align:right">
-                <span style="display:inline-block;padding:3px 11px;border-radius:20px;font-size:10.5px;text-transform:uppercase;letter-spacing:0.09em;font-weight:500;background:{{ x.marcaFondo }};color:{{ x.marcaTinta }}">{{ x.estado }}</span>
-                <span style="display:block;font-size:12.5px;color:#9AA69F;margin-top:4px">{{ x.nota }}</span>
-              </span>
-              <svg sc-camel-view-box="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:#9AA69F;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transform:{{ x.giro }};transition:transform .18s"><path d="M6 9l6 6 6-6"></path></svg>
-            </button>
-            <sc-if value="{{ x.desplegado }}" hint-placeholder-val="{{ false }}">
-              <div style="padding:2px 0 20px 59px">
-                <div style="display:flex;gap:30px;flex-wrap:wrap;padding-bottom:16px">
-                  <span><span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#9AA69F">Alumnos</span><span style="display:block;font-family:Prata,serif;font-size:21px;color:#1D4B43;margin-top:3px">{{ x.alumnos }}</span></span>
-                  <span><span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#9AA69F">Notas pasadas</span><span style="display:block;font-family:Prata,serif;font-size:21px;color:#1D4B43;margin-top:3px">{{ x.pasadas }}</span></span>
-                  <span><span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#9AA69F">Columna</span><span style="display:block;font-family:Prata,serif;font-size:21px;color:#1D4B43;margin-top:3px">{{ x.columna }}</span></span>
-                </div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap">
-                  <button sc-camel-on-click="{{ x.reimprimir }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:13px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">{{ x.reimprimirTexto }}</button>
-                  <button sc-camel-on-click="{{ x.anular }}" style="display:{{ x.anularVer }};border:0;background:transparent;color:#A65543;font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:4px;cursor:pointer;padding:8px 6px">Anular examen</button>
-                </div>
-              </div>
-            </sc-if>
-          </div>
-        </sc-for>
       </div>
     </div>
 
@@ -509,6 +486,37 @@
         <div style="flex:none;display:flex;justify-content:flex-end;align-items:center;gap:14px;padding:13px 20px;border-top:1px solid #E2DACB;background:#FBF9F5">
           <button sc-camel-on-click="{{ alumnosCancelar }}" style="border:0;background:transparent;color:#6E7B74;font:inherit;font-size:13.5px;text-decoration:underline;text-underline-offset:4px;cursor:pointer">Cancelar</button>
           <button sc-camel-on-click="{{ alumnosListo }}" style="border:0;background:#1D4B43;color:#FBF9F5;border-radius:16px;padding:11px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#153931">{{ alumnosListoTexto }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Examen elegido en la tabla de Exámenes: datos, Imprimir de nuevo y Anular. -->
+  <sc-if value="{{ hayExVer }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:50;background:rgba(27,33,30,.55);display:flex;align-items:center;justify-content:center;padding:16px">
+      <div style="width:min(560px,100%);max-height:100%;overflow-y:auto;border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.3);background:#FBF9F5">
+        <div style="background:#1D4B43;color:#F1EDE3;padding:22px 22px 20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+            <span style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#C5D3C8;font-weight:500">{{ exVerEtiqueta }}</span>
+            <span style="padding:3px 11px;border-radius:20px;font-size:10.5px;text-transform:uppercase;letter-spacing:0.09em;font-weight:500;background:{{ exVerMarcaFondo }};color:{{ exVerMarcaTinta }}">{{ exVerEstado }}</span>
+          </div>
+          <div style="font-family:Prata,Georgia,serif;font-size:27px;line-height:1.15;margin-top:8px">{{ exVerTema }}</div>
+          <div style="font-size:13px;color:#C5D3C8;margin-top:5px">{{ exVerMeta }}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;padding:16px 22px 4px">
+          <sc-for list="{{ exVerDatos }}" as="d" hint-placeholder-count="4">
+            <div style="background:{{ d.fondo }};border-radius:16px;padding:12px 14px">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:{{ d.etiqueta }}">{{ d.k }}</div>
+              <div style="font-family:Prata,serif;font-size:24px;color:{{ d.tinta }};margin-top:4px">{{ d.v }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 22px 20px">
+          <button sc-camel-on-click="{{ exVerAnular }}" style="display:{{ exVerAnularVer }};border:0;background:transparent;color:#A65543;font:inherit;font-size:13.5px;text-decoration:underline;text-underline-offset:4px;cursor:pointer;padding:0">Anular examen</button>
+          <span style="display:flex;gap:10px;margin-left:auto">
+            <button sc-camel-on-click="{{ exVerCerrar }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:16px;padding:11px 18px;font:inherit;font-size:14px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">Cerrar</button>
+            <button sc-camel-on-click="{{ exVerReimprimir }}" style="border:0;background:#C99B52;color:#3B2A0C;border-radius:16px;padding:11px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#BC8C43">{{ exVerReimprimirTexto }}</button>
+          </span>
         </div>
       </div>
     </div>
@@ -640,7 +648,8 @@ class Component extends DCLogic {
     // tema: el de la ventana de ejercicios; otro: la ventana muestra pestañas con todos los temas del nivel.
     tema: null, otro: false, sel: [], hoja: [], nombre: "", guardando: false,
     formasAbiertas: false, col: null, colHover: null,
-    filtro: "Sexto A", aviso: "", abierto: null,
+    filtro: "Sexto A", aviso: "",
+    exVer: null, // examen abierto desde la tabla de Exámenes (id)
     // Notas por foto: filas por alumno, avisos de hojas que no se pueden pasar e imágenes de diagnóstico.
     lectura: [], problemas: [], diag: [], verDiag: false, leyendo: "", pasando: false,
     imprFuera: [],
@@ -689,35 +698,74 @@ class Component extends DCLogic {
     } });
   };
 
-  // Tabla de Exámenes: alumnos del curso elegido × columnas del registro que usan los exámenes del sistema.
+  // Tabla de Exámenes: alumnos del curso elegido × columnas del registro que usan los exámenes del sistema,
+  // y la ventana del examen que se toque en su encabezado.
   tablaRegistro(par) {
     const s = this.state, reg = s.registros[cursoKey(nivelDe(s.filtro), par)];
     const exs = s.examenes.filter((x) => x.nivel === nivelDe(s.filtro) && x.paralelos.indexOf(par) >= 0)
       .slice().sort((a, b) => (a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : 0));
-    const base = { tablaTitulo: "Registro · " + s.filtro, hayTabla: false, tablaCols: [], tablaFilas: [] };
+    const base = { tablaTitulo: "Registro · " + s.filtro, hayTabla: false, tablaCols: [], tablaFilas: [], ...this.ventanaExamen(null) };
     if (!reg || reg.cargando) return { ...base, tablaNota: "Cargando…" };
     if (reg.error) return { ...base, tablaNota: reg.error };
     if (!exs.length) return { ...base, tablaNota: "Todavía no hay exámenes de este curso." };
-    const cols = exs.map((x) => ({ x, c: reg.columnas.find((c) => c.letra === x.columna_registro) }));
+    const cols = exs.map((x) => {
+      const c = reg.columnas.find((k) => k.letra === x.columna_registro);
+      const dieron = c ? reg.alumnos.filter((a) => c.valores[a.numero - 1] !== "").length : 0;
+      return { x, c, dieron, total: reg.alumnos.length, promedio: c && c.promedio !== null ? String(c.promedio).replace(".", ",") : "—" };
+    });
+    const visto = cols.find((k) => k.x.id_examen === s.exVer) || null;
     return {
-      ...base, hayTabla: true,
+      ...base, ...this.ventanaExamen(visto), hayTabla: true,
+      tablaNota: "Solo los exámenes del sistema · toca uno para ver sus opciones",
       // El nombre se parte en líneas en pantallas angostas; con muchas columnas, la cuadrícula se desplaza de lado.
-      tablaGrid: "minmax(140px,2.4fr) repeat(" + cols.length + ",minmax(78px,1fr))",
-      tablaAncho: 140 + 78 * cols.length + "px",
-      tablaNota: "Solo los exámenes del sistema · leído de tu registro",
-      tablaCols: cols.map(({ x, c }) => ({
-        tema: x.tema, detalle: fechaCorta(x.fecha).slice(0, 5) + " · col. " + x.columna_registro,
-        promedio: c && c.promedio !== null ? String(c.promedio).replace(".", ",") : "—"
+      tablaGrid: "minmax(140px,2.4fr) repeat(" + cols.length + ",minmax(88px,1fr))",
+      tablaAncho: 140 + 88 * cols.length + "px",
+      tablaCols: cols.map((k) => ({
+        tema: k.x.tema, detalle: fechaCorta(k.x.fecha).slice(0, 5) + " · col. " + k.x.columna_registro,
+        promedio: k.promedio,
+        resumen: k.c && k.c.notas ? k.dieron + " dieron · " + (k.total - k.dieron) + " no" : "sin notas aún",
+        abrir: () => this.setState({ exVer: k.x.id_examen })
       })),
-      tablaFilas: reg.alumnos.map((a) => ({
-        n: a.numero, nombre: a.nombre,
+      tablaFilas: reg.alumnos.map((a, i) => ({
+        n: a.numero, nombre: a.nombre, fondo: i % 2 ? "#F6F1E8" : "#FBF9F5",
         notas: cols.map(({ c }) => {
           const v = c ? c.valores[a.numero - 1] : "";
           // Sin ninguna nota en la columna todavía: "—"; si otros ya tienen nota: "No dio".
-          return v !== "" ? { t: v, fuente: "Prata,serif", tam: "15px", tinta: "#1D4B43" }
-            : { t: c && c.notas ? "No dio" : "—", fuente: "inherit", tam: "12px", tinta: "#9AA69F" };
+          if (v !== "") return { t: v, fuente: "Prata,serif", tam: "16px", tinta: "#1D4B43", fondo: "transparent", relleno: "0" };
+          return c && c.notas
+            ? { t: "No dio", fuente: "inherit", tam: "11.5px", tinta: "#A65543", fondo: "#F2E1DB", relleno: "2px 9px" }
+            : { t: "—", fuente: "inherit", tam: "13px", tinta: "#B9C1BB", fondo: "transparent", relleno: "0" };
         })
       }))
+    };
+  }
+
+  // Bindings de la ventana del examen (k: columna de la tabla con su examen y cuántos dieron, o null).
+  ventanaExamen(k) {
+    const s = this.state;
+    if (!k) return { hayExVer: false, exVerDatos: [] };
+    const x = k.x, conNotas = x.notas_pasadas > 0;
+    const dato = (clave, v, oscuro) => ({ k: clave, v, fondo: oscuro ? "#DDE4DC" : "#F2E5CF", tinta: oscuro ? "#1D4B43" : "#6B5320", etiqueta: oscuro ? "#4F6B62" : "#8A6A2A" });
+    return {
+      hayExVer: true,
+      exVerEtiqueta: x.id_examen + " · " + s.filtro + (x.paralelos.length > 1 ? " (examen de " + x.paralelos.join(" y ") + ")" : ""),
+      exVerTema: x.tema,
+      exVerMeta: fechaCorta(x.fecha) + " · " + x.preguntas.length + " preguntas · columna " + x.columna_registro + (x.duracion ? " · " + x.duracion : ""),
+      exVerEstado: conNotas ? "Con notas" : "Sin notas",
+      exVerMarcaFondo: conNotas ? "#DDE4DC" : "#C99B52", exVerMarcaTinta: conNotas ? "#1D4B43" : "#3B2A0C",
+      exVerDatos: [
+        // Dieron / No dieron / Promedio: del paralelo elegido en la tabla (el examen puede ser de A y B).
+        dato("Dieron", k.dieron + " de " + k.total, true),
+        dato("No dieron", k.c && k.c.notas ? k.total - k.dieron : "—", false),
+        dato("Promedio", k.promedio, true),
+        dato("Alumnos del examen", Object.keys(x.asignacion).length - x.excluidos.length, false)
+      ],
+      exVerCerrar: () => this.setState({ exVer: null }),
+      exVerReimprimir: () => { this.setState({ exVer: null }); this.reimprimir(x); },
+      exVerReimprimirTexto: s.preparando === x.id_examen ? "Preparando…" : "Imprimir de nuevo",
+      // Solo se puede anular mientras no haya notas en el registro (el backend lo vuelve a comprobar).
+      exVerAnularVer: conNotas ? "none" : "inline-block",
+      exVerAnular: () => this.pedirAnular(x)
     };
   }
 
@@ -751,7 +799,7 @@ class Component extends DCLogic {
     try {
       await this.llamar("anular", { id_examen: ex.id_examen });
       // La columna quedó libre: los registros se vuelven a leer cuando se necesiten.
-      this.setState({ dialogo: null, abierto: null, registros: {} });
+      this.setState({ dialogo: null, exVer: null, registros: {} });
       this.asegurarRegistro(nivelDe(this.state.filtro), paralelosDe(this.state.filtro)[0], true);
       this.avisar(ex.id_examen + " anulado.");
       this.cargar();
@@ -1040,6 +1088,7 @@ class Component extends DCLogic {
       const st = this.state;
       if (st.dialogo) return this.setState({ dialogo: null });
       if (st.verRegistros) return this.setState({ verRegistros: false });
+      if (st.exVer) return this.setState({ exVer: null });
       this.setState(st.eligeFuera ? { [st.eligeFuera]: st.respaldoFuera, eligeFuera: null } : { calAbierto: false, tema: null, otro: false, sel: [] });
     };
     document.addEventListener("click", this._fuera, true);
@@ -1377,41 +1426,11 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
           nombre,
           fondo: on ? "#1D4B43" : "#FBF9F5",
           tinta: on ? "#FBF9F5" : "#6E7B74",
-          set: () => { this.setState({ filtro: nombre, abierto: null }); this.asegurarRegistro(nivelDe(nombre), paralelosDe(nombre)[0]); }
+          set: () => { this.setState({ filtro: nombre }); this.asegurarRegistro(nivelDe(nombre), paralelosDe(nombre)[0]); }
         };
       }),
 
       ...this.tablaRegistro(par),
-      examenes: s.examenes
-        .filter((x) => x.nivel === nivelDe(s.filtro) && x.paralelos.indexOf(par) >= 0)
-        .map((x, i) => {
-          const on = s.abierto === x.id_examen;
-          const conNotas = x.notas_pasadas > 0;
-          return {
-            inicial: x.id_examen.replace(/^EX0*/, "").padStart(2, "0"),
-            titulo: x.tema,
-            meta: x.id_examen + " · " + fechaCorta(x.fecha) + " · " + x.preguntas.length + " preguntas · col. " + x.columna_registro,
-            estado: conNotas ? "Con notas" : "Sin notas",
-            nota: conNotas ? x.notas_pasadas + " en el registro" : x.paralelos.length > 1 ? "paralelos " + x.paralelos.join(" y ") : "",
-            linea: i === 0 ? "transparent" : "#E2DACB",
-            iconoFondo: conNotas ? "#DDE4DC" : "#F2E5CF",
-            iconoTinta: conNotas ? "#1D4B43" : "#8A6A2A",
-            marcaFondo: conNotas ? "#DDE4DC" : "#EFE9DE",
-            marcaTinta: conNotas ? "#1D4B43" : "#6E7B74",
-            desplegado: on,
-            giro: on ? "rotate(180deg)" : "rotate(0deg)",
-            abrir: () => this.setState({ abierto: on ? null : x.id_examen }),
-            alumnos: Object.keys(x.asignacion).length - x.excluidos.length,
-            pasadas: x.notas_pasadas,
-            columna: x.columna_registro,
-            reimprimir: () => this.reimprimir(x),
-            reimprimirTexto: s.preparando === x.id_examen ? "Preparando…" : "Imprimir de nuevo",
-            // Solo se puede anular mientras no haya notas en el registro (el backend lo vuelve a comprobar).
-            anularVer: conNotas ? "none" : "inline-block",
-            anular: () => this.pedirAnular(x)
-          };
-        }),
-
       imprFueraTexto: this.textoFuera(lista.length, s.imprFuera.length),
       elegirCrear: () => this.setState({ eligeFuera: "imprFuera", respaldoFuera: s.imprFuera }),
       ...this.ventanaAlumnos(s.eligeFuera === "impFuera" ? (s.impresion ? s.impresion.alumnos : []) : lista),

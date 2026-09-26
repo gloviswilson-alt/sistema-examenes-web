@@ -77,7 +77,9 @@ filas, nunca se modifican: si después se cambia una nota en el registro, la ori
 La bitácora es solo un respaldo en Google Sheets; el panel no la muestra.
 
 En **Exámenes**, al elegir un curso se ve una parte del registro (dimensión del saber): solo las columnas de
-los exámenes hechos con el sistema, leídas del registro, con "No dio" para quien no tiene nota.
+los exámenes hechos con el sistema, leídas del registro, con "No dio" para quien no tiene nota. La tabla se
+desplaza por dentro con el promedio y cuántos dieron fijos abajo; al tocar un examen se abre su ventana con
+"Imprimir de nuevo" y "Anular".
 Si la bitácora falla, las notas igual quedan en el registro y el panel lo avisa. Las fotos no se guardan
 (nunca salen del celular).
 

@@ -109,26 +109,6 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
     await sheets.escribir(SISTEMA, cambios);
   }
 
-  // Nota calificada por alumno en un examen, según la Bitácora: la que se escribió en el registro; si nunca
-  // se escribió porque la celda ya tenía algo, la última que se intentó. Sin bitácora todavía: ninguna.
-  async function calificadasDe(id_examen, carnets) {
-    let filas;
-    try {
-      filas = tabla(await sheets.leer(SISTEMA, `'${HOJA_BITACORA}'`)).filas;
-    } catch {
-      return [];
-    }
-    const porCarnet = new Map();
-    for (const f of filas) {
-      const carnet = normCarnet(f.carnet);
-      if (!igual(f.id_examen, id_examen) || !carnets.includes(carnet)) continue;
-      if (f.resultado !== 'escrita' && f.resultado !== 'ocupada') continue;
-      if (porCarnet.get(carnet)?.resultado === 'escrita') continue; // la escrita no se reemplaza
-      porCarnet.set(carnet, { carnet, nota: Number(f.nota), resultado: f.resultado, origen: texto(f.origen), fecha: texto(f.fecha_hora) });
-    }
-    return [...porCarnet.values()];
-  }
-
   // Agrega filas a la bitácora; la primera vez crea la hoja con sus encabezados.
   async function anotarBitacora(filas) {
     let encabezado;
@@ -267,22 +247,20 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
       return { id_examen: ex.id_examen, ...valores };
     },
 
-    // Con id_examen, además devuelve lo que el sistema calificó en ese examen para los alumnos del curso,
-    // según la Bitácora (así se ve aunque después se cambie la nota en el registro).
-    async notas({ nivel, paralelo, id_examen }) {
+    async notas({ nivel, paralelo }) {
       const curso = cursoDe(nivel, paralelo);
       const id = registroDe(curso);
       const del_curso = (await leerTabla('Alumnos')).filas
         .filter((a) => igual(a.nivel, nivel) && igual(a.paralelo, paralelo));
       const maxN = Math.max(0, ...del_curso.map((a) => Number(a.numero) || 0));
       const encabezados = (await sheets.leer(id, `'${HOJA_TRIMESTRE}'!I2:R2`, { formulas: true }))[0] || [];
-      const celdas = maxN ? await sheets.leer(id, `'${HOJA_TRIMESTRE}'!I12:R${11 + maxN}`, { formulas: true }) : [];
+      const rango = `'${HOJA_TRIMESTRE}'!I12:R${11 + maxN}`;
+      const celdas = maxN ? await sheets.leer(id, rango, { formulas: true }) : [];
+      const vistas = maxN ? await sheets.leer(id, rango) : []; // lo que muestra la hoja (para la tabla del panel)
       const examenes = (await leerTabla('Examenes')).filas.filter((e) => !anulado(e) &&
         igual(e.nivel, nivel) && listaComas(e.paralelos).some((p) => igual(p, paralelo)));
-      const calificadas = id_examen ? await calificadasDe(id_examen, del_curso.map((a) => normCarnet(a.carnet))) : undefined;
       return {
         curso,
-        ...(calificadas ? { calificadas } : {}),
         alumnos: del_curso.map((a) => ({ numero: Number(a.numero), nombre: texto(a.nombre), carnet: normCarnet(a.carnet) }))
           .sort((a, b) => a.numero - b.numero),
         columnas: COLUMNAS_SABER.map((letra, i) => ({
@@ -290,6 +268,7 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
           encabezado: texto(encabezados[i]),
           notas: celdas.filter((f) => texto(f[i]) !== '').length,
           promedio: promedio(celdas.map((f) => f[i])),
+          valores: Array.from({ length: maxN }, (_, n) => texto(vistas[n]?.[i])), // por n.º de lista (1 → posición 0)
           examenes: examenes.filter((e) => igual(e.columna_registro, letra))
             .map((e) => ({ id_examen: e.id_examen, tema: e.tema, fecha: e.fecha }))
         }))

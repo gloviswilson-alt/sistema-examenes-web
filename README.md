@@ -48,7 +48,7 @@ Respuesta: `{ "ok": true, ... }` o `{ "ok": false, "error": "..." }`.
 | `banco` | `nivel`, `tema?` | `temas`, `preguntas` (por `codigo`, con sus `formas`; el enunciado ya trae el signo de la clave; se ocultan las familias con 4 formas iguales) |
 | `guardar` | `fecha, nivel, paralelos[], tema, duracion?, columna_registro, preguntas[{codigo, puntaje, espacio}], excluidos[]?` | `id_examen` (`EX001`…), `asignacion` (carnet → forma) |
 | `cambiar` | `id_examen`, `columna_registro?`, `excluidos[]?` | lo cambiado |
-| `notas` | `nivel`, `paralelo`, `id_examen?` | `alumnos` del curso y `columnas` I–R: encabezado, cuántas notas y su promedio, y qué exámenes la usan (con fecha). Con `id_examen`, también `calificadas`: la nota de cada alumno en ese examen según la Bitácora |
+| `notas` | `nivel`, `paralelo` | `alumnos` del curso y `columnas` I–R: encabezado, cuántas notas, su promedio, `valores` (lo que muestra cada celda, por n.º de lista) y qué exámenes la usan (con fecha) |
 | `pasar` | `id_examen`, `notas[{carnet, nota, leida?, origen?}]` (nota entera de 2 a 45; `origen` = `foto`, `corregida` o `a mano`) | `escritas`, `resultados` por alumno (`escrita`, `ocupada`, `rechazada`, `no escrita`) y `bitacora` (si se pudo anotar) |
 | `ajuste` | `trimestre?`, `profesor?` (sin datos solo lee) | ajustes guardados |
 | `anular` | `id_examen` | lo marca `anulado` en Examenes, solo si no tiene notas pasadas (la fila no se borra) |
@@ -74,8 +74,10 @@ Cada envío de `pasar` agrega una fila por alumno en la pestaña **Bitácora** d
 (la crea la primera vez): fecha y hora, examen, curso, n.º de lista, carnet, nota enviada, nota que leyó la
 foto, origen (`foto`, `corregida` o `a mano`), resultado en el registro, celda y motivo. Solo se agregan
 filas, nunca se modifican: si después se cambia una nota en el registro, la original queda aquí.
-En **Exámenes**, al abrir un examen se ve cada alumno del paralelo elegido con su nota (o "No dio examen"),
-tomada de la Bitácora.
+La bitácora es solo un respaldo en Google Sheets; el panel no la muestra.
+
+En **Exámenes**, al elegir un curso se ve una parte del registro (dimensión del saber): solo las columnas de
+los exámenes hechos con el sistema, leídas del registro, con "No dio" para quien no tiene nota.
 Si la bitácora falla, las notas igual quedan en el registro y el panel lo avisa. Las fotos no se guardan
 (nunca salen del celular).
 

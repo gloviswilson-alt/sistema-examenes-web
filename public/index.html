@@ -311,12 +311,44 @@
     <div style="display:{{ vExamenes }}">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px">
         <h2 style="font-family:Prata,Georgia,serif;font-weight:400;font-size:26px;color:#1D4B43;margin:0">Exámenes</h2>
-        <div style="display:flex;gap:8px;align-items:center">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <sc-for list="{{ filtros }}" as="c" hint-placeholder-count="4">
-            <button sc-camel-on-click="{{ c.set }}" style="border:0;background:{{ c.fondo }};color:{{ c.tinta }};border-radius:22px;padding:8px 16px;font:inherit;font-size:13px;font-weight:500;cursor:pointer">{{ c.nombre }}</button>
+            <button sc-camel-on-click="{{ c.set }}" style="border:0;background:{{ c.fondo }};color:{{ c.tinta }};border-radius:22px;padding:8px 16px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap">{{ c.nombre }}</button>
           </sc-for>
         </div>
       </div>
+      <!-- Parte del registro (dimensión del saber): solo las columnas de los exámenes hechos con el sistema. -->
+      <div style="background:#FBF9F5;border-radius:24px;padding:18px 0 12px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding:0 22px 10px">
+          <div style="font-family:Prata,Georgia,serif;font-size:19px;color:#1D4B43">{{ tablaTitulo }}</div>
+          <div style="font-size:12.5px;color:#6E7B74">{{ tablaNota }}</div>
+        </div>
+        <sc-if value="{{ hayTabla }}" hint-placeholder-val="{{ false }}">
+          <!-- Cuadrícula (no <table>: el navegador sacaría los sc-for fuera de la tabla). La 1.ª columna queda fija al desplazar. -->
+          <div style="overflow-x:auto;overscroll-behavior-x:contain">
+            <div style="display:grid;grid-template-columns:{{ tablaGrid }};font-size:13.5px;min-width:{{ tablaAncho }}">
+              <div style="position:sticky;left:0;background:#FBF9F5;padding:8px 10px 8px 22px;border-bottom:1.5px solid #1D4B43;font-size:10.5px;text-transform:uppercase;letter-spacing:0.12em;color:#9AA69F;display:flex;align-items:flex-end">Alumno</div>
+              <sc-for list="{{ tablaCols }}" as="c" hint-placeholder-count="2">
+                <div style="text-align:center;padding:8px 12px;border-bottom:1.5px solid #1D4B43">
+                  <span style="display:block;font-size:12.5px;font-weight:500;color:#1D4B43">{{ c.tema }}</span>
+                  <span style="display:block;font-size:11px;color:#9AA69F;margin-top:2px">{{ c.detalle }}</span>
+                </div>
+              </sc-for>
+              <sc-for list="{{ tablaFilas }}" as="f" hint-placeholder-count="6">
+                <div style="position:sticky;left:0;background:#FBF9F5;padding:7px 10px 7px 22px;border-bottom:1px solid #E2DACB;display:flex;gap:6px;line-height:1.3"><span style="min-width:18px;color:#9AA69F;font-size:12px;flex:none">{{ f.n }}</span><span>{{ f.nombre }}</span></div>
+                <sc-for list="{{ f.notas }}" as="v" hint-placeholder-count="2">
+                  <div style="text-align:center;padding:7px 10px;border-bottom:1px solid #E2DACB;font-family:{{ v.fuente }};font-size:{{ v.tam }};color:{{ v.tinta }};white-space:nowrap;display:flex;align-items:center;justify-content:center">{{ v.t }}</div>
+                </sc-for>
+              </sc-for>
+              <div style="position:sticky;left:0;background:#FBF9F5;padding:9px 10px 4px 22px;font-size:10.5px;text-transform:uppercase;letter-spacing:0.12em;color:#9AA69F">Promedio</div>
+              <sc-for list="{{ tablaCols }}" as="c" hint-placeholder-count="2">
+                <div style="text-align:center;padding:9px 12px 4px;font-family:Prata,serif;font-size:15px;color:#1D4B43">{{ c.promedio }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
       <div style="background:#FBF9F5;border-radius:24px;padding:6px 22px 10px">
         <sc-for list="{{ examenes }}" as="x" hint-placeholder-count="3">
           <div style="border-top:1px solid {{ x.linea }}">
@@ -342,21 +374,6 @@
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
                   <button sc-camel-on-click="{{ x.reimprimir }}" style="border:1.5px solid #E2DACB;background:transparent;border-radius:13px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer" style-hover="border-color:#1D4B43;color:#1D4B43">{{ x.reimprimirTexto }}</button>
                   <button sc-camel-on-click="{{ x.anular }}" style="display:{{ x.anularVer }};border:0;background:transparent;color:#A65543;font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:4px;cursor:pointer;padding:8px 6px">Anular examen</button>
-                </div>
-                <div style="margin-top:18px">
-                  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px">
-                    <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#9AA69F">{{ x.notasTitulo }}</span>
-                    <span style="font-size:12.5px;color:#6E7B74">{{ x.notasResumen }}</span>
-                  </div>
-                  <div style="columns:260px;column-gap:26px">
-                    <sc-for list="{{ x.notasLista }}" as="a" hint-placeholder-count="6">
-                      <div style="display:flex;align-items:baseline;gap:10px;padding:7px 0;border-top:1px solid #E2DACB;break-inside:avoid">
-                        <span style="font-size:12px;color:#9AA69F;min-width:20px;font-variant-numeric:tabular-nums">{{ a.n }}</span>
-                        <span style="flex:1;min-width:0;font-size:13.5px">{{ a.nombre }}</span>
-                        <span style="font-family:{{ a.fuente }};font-size:{{ a.tam }};color:{{ a.tinta }};white-space:nowrap">{{ a.nota }}</span>
-                      </div>
-                    </sc-for>
-                  </div>
                 </div>
               </div>
             </sc-if>
@@ -622,8 +639,6 @@ class Component extends DCLogic {
     eligeFuera: null, respaldoFuera: [],
     // Ventana de confirmación: { titulo, lineas, nota, peligro, si, no, accion } o null.
     dialogo: null, anulando: false,
-    // Notas calificadas por examen y paralelo ("EX003-A"): { cargando } | { error } | { alumnos, calificadas }.
-    notasEx: {},
     // Botón "Registro": enlaces a los registros en Google Sheets y si su ventana está abierta.
     enlacesRegistro: [], verRegistros: false
   };
@@ -631,6 +646,7 @@ class Component extends DCLogic {
   ir = (vista) => () => {
     this.setState({ vista, colHover: null, calAbierto: false });
     if (vista === "crear") this.asegurarDatos(this.state.curso);
+    if (vista === "examenes") this.asegurarRegistro(nivelDe(this.state.filtro), paralelosDe(this.state.filtro)[0]);
   };
 
   // Trae (una sola vez por sesión) el banco del nivel y el registro de cada paralelo del curso.
@@ -642,14 +658,7 @@ class Component extends DCLogic {
         .then((r) => ({ temas: r.temas, preguntas: r.preguntas }), (e) => ({ error: e.message }))
         .then((b) => this.setState((st) => ({ bancos: { ...st.bancos, [nivel]: b } })));
     }
-    for (const par of paralelosDe(curso)) {
-      const k = cursoKey(nivel, par);
-      if (this.state.registros[k]) continue;
-      this.setState((st) => ({ registros: { ...st.registros, [k]: { cargando: true } } }));
-      this.llamar("notas", { nivel, paralelo: par })
-        .then((r) => ({ columnas: r.columnas, alumnos: r.alumnos }), (e) => ({ error: e.message }))
-        .then((reg) => this.setState((st) => ({ registros: { ...st.registros, [k]: reg } })));
-    }
+    for (const par of paralelosDe(curso)) this.asegurarRegistro(nivel, par);
   };
 
   // Antes de guardar se muestra un resumen: después ya no se pueden cambiar las preguntas.
@@ -671,37 +680,47 @@ class Component extends DCLogic {
     } });
   };
 
-  // Alumnos del paralelo y lo que el sistema calificó en ese examen (según la Bitácora).
-  cargarNotasExamen = (ex, par) => {
-    const k = ex.id_examen + "-" + par;
-    if (this.state.notasEx[k] && !this.state.notasEx[k].error) return;
-    this.setState((st) => ({ notasEx: { ...st.notasEx, [k]: { cargando: true } } }));
-    this.llamar("notas", { nivel: ex.nivel, paralelo: par, id_examen: ex.id_examen })
-      .then((r) => ({ alumnos: r.alumnos, calificadas: r.calificadas || [] }), (e) => ({ error: e.message }))
-      .then((v) => this.setState((st) => ({ notasEx: { ...st.notasEx, [k]: v } })));
-  };
-
-  notasExamen(ex, par) {
-    const v = this.state.notasEx[ex.id_examen + "-" + par] || { cargando: true };
-    const base = { notasTitulo: "Notas · " + ex.nivel + " " + par };
-    if (v.cargando) return { ...base, notasResumen: "Cargando…", notasLista: [] };
-    if (v.error) return { ...base, notasResumen: v.error, notasLista: [] };
-    const nota = new Map(v.calificadas.map((c) => [normCarnet(c.carnet), c.nota]));
-    const dieron = v.alumnos.filter((a) => nota.has(normCarnet(a.carnet)));
-    const prom = dieron.length ? dieron.reduce((t, a) => t + nota.get(normCarnet(a.carnet)), 0) / dieron.length : 0;
+  // Tabla de Exámenes: alumnos del curso elegido × columnas del registro que usan los exámenes del sistema.
+  tablaRegistro(par) {
+    const s = this.state, reg = s.registros[cursoKey(nivelDe(s.filtro), par)];
+    const exs = s.examenes.filter((x) => x.nivel === nivelDe(s.filtro) && x.paralelos.indexOf(par) >= 0)
+      .slice().sort((a, b) => (a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : 0));
+    const base = { tablaTitulo: "Registro · " + s.filtro, hayTabla: false, tablaCols: [], tablaFilas: [] };
+    if (!reg || reg.cargando) return { ...base, tablaNota: "Cargando…" };
+    if (reg.error) return { ...base, tablaNota: reg.error };
+    if (!exs.length) return { ...base, tablaNota: "Todavía no hay exámenes de este curso." };
+    const cols = exs.map((x) => ({ x, c: reg.columnas.find((c) => c.letra === x.columna_registro) }));
     return {
-      ...base,
-      notasResumen: "Dieron " + dieron.length + " de " + v.alumnos.length + (dieron.length ? " · promedio " + prom.toFixed(1).replace(".", ",") : ""),
-      notasLista: v.alumnos.map((a) => {
-        const n = nota.get(normCarnet(a.carnet));
-        const dio = n !== undefined;
-        return {
-          n: a.numero, nombre: a.nombre, nota: dio ? n : "No dio examen",
-          fuente: dio ? "Prata,serif" : "inherit", tam: dio ? "16px" : "12px", tinta: dio ? "#1D4B43" : "#9AA69F"
-        };
-      })
+      ...base, hayTabla: true,
+      // El nombre se parte en líneas en pantallas angostas; con muchas columnas, la cuadrícula se desplaza de lado.
+      tablaGrid: "minmax(140px,2.4fr) repeat(" + cols.length + ",minmax(78px,1fr))",
+      tablaAncho: 140 + 78 * cols.length + "px",
+      tablaNota: "Solo los exámenes del sistema · leído de tu registro",
+      tablaCols: cols.map(({ x, c }) => ({
+        tema: x.tema, detalle: fechaCorta(x.fecha).slice(0, 5) + " · col. " + x.columna_registro,
+        promedio: c && c.promedio !== null ? String(c.promedio).replace(".", ",") : "—"
+      })),
+      tablaFilas: reg.alumnos.map((a) => ({
+        n: a.numero, nombre: a.nombre,
+        notas: cols.map(({ c }) => {
+          const v = c ? c.valores[a.numero - 1] : "";
+          // Sin ninguna nota en la columna todavía: "—"; si otros ya tienen nota: "No dio".
+          return v !== "" ? { t: v, fuente: "Prata,serif", tam: "15px", tinta: "#1D4B43" }
+            : { t: c && c.notas ? "No dio" : "—", fuente: "inherit", tam: "12px", tinta: "#9AA69F" };
+        })
+      }))
     };
   }
+
+  // Registro de un paralelo (una vez por sesión, o de nuevo después de pasar notas).
+  asegurarRegistro = (nivel, par, deNuevo = false) => {
+    const k = cursoKey(nivel, par);
+    if (this.state.registros[k] && !deNuevo) return;
+    this.setState((st) => ({ registros: { ...st.registros, [k]: { cargando: true } } }));
+    this.llamar("notas", { nivel, paralelo: par })
+      .then((r) => ({ columnas: r.columnas, alumnos: r.alumnos }), (e) => ({ error: e.message }))
+      .then((reg) => this.setState((st) => ({ registros: { ...st.registros, [k]: reg } })));
+  };
 
   pedirAnular = (ex) => {
     this.setState({ dialogo: {
@@ -724,6 +743,7 @@ class Component extends DCLogic {
       await this.llamar("anular", { id_examen: ex.id_examen });
       // La columna quedó libre: los registros se vuelven a leer cuando se necesiten.
       this.setState({ dialogo: null, abierto: null, registros: {} });
+      this.asegurarRegistro(nivelDe(this.state.filtro), paralelosDe(this.state.filtro)[0], true);
       this.avisar(ex.id_examen + " anulado.");
       this.cargar();
     } catch (e) {
@@ -969,7 +989,7 @@ class Component extends DCLogic {
       const lectura = this.state.lectura.map((r) => (resultados[r.clave] ? { ...r, resultado: resultados[r.clave] } : r));
       const escritas = Object.values(resultados).filter((x) => x.estado === "escrita").length;
       // Los registros cambiaron: se vuelven a leer cuando se necesiten.
-      this.setState({ lectura, pasando: false, registros: {}, notasEx: {} });
+      this.setState({ lectura, pasando: false, registros: {} });
       this.avisar(escritas + (escritas === 1 ? " nota pasada" : " notas pasadas") + " al registro." +
         (sinBitacora ? " Atención: no se pudo anotar en la Bitácora." : ""));
       this.cargar();
@@ -1337,10 +1357,11 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
           nombre,
           fondo: on ? "#1D4B43" : "#FBF9F5",
           tinta: on ? "#FBF9F5" : "#6E7B74",
-          set: () => this.setState({ filtro: nombre, abierto: null })
+          set: () => { this.setState({ filtro: nombre, abierto: null }); this.asegurarRegistro(nivelDe(nombre), paralelosDe(nombre)[0]); }
         };
       }),
 
+      ...this.tablaRegistro(par),
       examenes: s.examenes
         .filter((x) => x.nivel === nivelDe(s.filtro) && x.paralelos.indexOf(par) >= 0)
         .map((x, i) => {
@@ -1359,8 +1380,7 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
             marcaTinta: conNotas ? "#1D4B43" : "#6E7B74",
             desplegado: on,
             giro: on ? "rotate(180deg)" : "rotate(0deg)",
-            abrir: () => { this.setState({ abierto: on ? null : x.id_examen }); if (!on) this.cargarNotasExamen(x, par); },
-            ...this.notasExamen(x, par),
+            abrir: () => this.setState({ abierto: on ? null : x.id_examen }),
             alumnos: Object.keys(x.asignacion).length - x.excluidos.length,
             pasadas: x.notas_pasadas,
             columna: x.columna_registro,

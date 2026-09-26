@@ -281,6 +281,8 @@ test('estado, notas (con fecha y promedio) y ajuste', async () => {
   assert.deepEqual(k.examenes, [{ id_examen: 'EX002', tema: 'La parábola y la elipse', fecha: '2026-09-17' }]);
   assert.equal(l.encabezado, 'Examen anterior');
   assert.equal(l.promedio, 37.5);
+  assert.deepEqual(l.valores, ['40', '35', '', '', '']); // por n.º de lista, como se ve en la hoja
+  assert.deepEqual(k.valores.slice(0, 3), ['', '30', '']); // la fórmula muestra su resultado (vacío)
   assert.equal(n.columnas.find((c) => c.letra === 'M').promedio, null);
   await assert.rejects(ops.notas({ nivel: 'Sexto', paralelo: 'A' }), /No hay registro configurado para 6A/);
 
@@ -347,16 +349,3 @@ test('si la bitácora falla, las notas igual quedan en el registro y se avisa', 
   assert.equal(docs.REG6B['3er Trimestre'][11][10], 41);
 });
 
-test('notas con id_examen devuelve lo calificado según la Bitácora (la escrita manda; si no, la última ocupada)', async () => {
-  const { ops } = escenario();
-  assert.equal((await ops.notas({ nivel: 'Sexto', paralelo: 'B' })).calificadas, undefined);
-  assert.deepEqual((await ops.notas({ nivel: 'Sexto', paralelo: 'B', id_examen: 'EX002' })).calificadas, []); // sin bitácora aún
-  await ops.pasar({ id_examen: 'EX002', notas: [
-    { carnet: 'C1', nota: 41, leida: 41, origen: 'foto' },   // escrita
-    { carnet: 'C2', nota: 20, leida: 20, origen: 'foto' },   // ocupada (ya tenía 30)
-    { carnet: 'C5', nota: 44, origen: 'a mano' }             // rechazada: no está en la Filiación
-  ] });
-  await ops.pasar({ id_examen: 'EX002', notas: [{ carnet: 'C1', nota: 12, origen: 'a mano' }] }); // ocupada: no reemplaza a la escrita
-  const n = await ops.notas({ nivel: 'Sexto', paralelo: 'B', id_examen: 'ex002' });
-  assert.deepEqual(n.calificadas.map((c) => [c.carnet, c.nota, c.resultado, c.origen]), [['C1', 41, 'escrita', 'foto'], ['C2', 20, 'ocupada', 'foto']]);
-});

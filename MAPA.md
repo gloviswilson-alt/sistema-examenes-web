@@ -32,7 +32,13 @@ Google Sheets), por partes y en este orden. Nada de esto está hecho todavía, s
 - **Asistencia:** cómo es la pestaña (una columna por día, filas, dónde va la fecha), qué letras se usan (P, F, A, L…), si se toma más de una vez al día, cómo se corrige.
 - **"No dio examen" en la ficha:** cuándo se anota (al cerrar el examen con un botón, o se reemplaza solo si luego se pone la nota).
 - **Portal:** qué ve el alumno de su ficha; claves personales (el sistema las genera, el profesor las entrega y las resetea); las notas se ven cuando el profesor las publica.
-- **Ministerio:** si su plataforma permite subir un archivo (lo ideal: generar ese archivo) o no (pantalla ordenada igual para copiar). No se automatiza entrando con la contraseña del profesor.
+- **Ministerio (SIE Académico):** búsqueda del 26/09/2026: no se encontró API oficial ni opción de importar Excel (no
+  verificado del todo). La vía oficial es llenar la página alumno por alumno. Existen herramientas de terceros
+  (p. ej. RegCal) que hacen "llenado automático": la opción recomendada es un **botón o extensión del navegador**
+  que llene la página del SIE **mientras el profesor está dentro con su usuario**, y él revisa y guarda (su
+  contraseña nunca sale del navegador; hay que ajustarla si el Ministerio cambia la página). Si no, una pantalla
+  ordenada igual para copiar. No se automatiza guardando la contraseña del profesor. Hará falta: capturas de la
+  pantalla del SIE donde se cargan las notas.
 - **WhatsApp:** primero solo preparar el mensaje y que el profesor lo envíe; el envío automático necesita la API oficial (costo y aprobación).
 
 ## Qué hará falta del profesor

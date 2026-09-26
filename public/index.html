@@ -500,12 +500,6 @@
             <button sc-camel-on-click="{{ r.abrir }}" style="border:1.5px solid #E2DACB;background:#FBF9F5;border-radius:16px;padding:14px 12px;font:inherit;font-size:14.5px;font-weight:500;color:#1D4B43;cursor:pointer" style-hover="border-color:#1D4B43;background:#F1EDE3">{{ r.nombre }}</button>
           </sc-for>
         </div>
-        <sc-if value="{{ hayBitacora }}" hint-placeholder-val="{{ false }}">
-          <button sc-camel-on-click="{{ abrirBitacora }}" style="width:100%;margin-top:10px;border:1.5px solid #E2DACB;background:#F2E5CF;border-radius:16px;padding:12px;font:inherit;font-size:14px;color:#6B5320;cursor:pointer;text-align:left" style-hover="border-color:#8A6A2A">
-            <span style="display:block;font-weight:500">Bitácora de notas</span>
-            <span style="display:block;font-size:12px;margin-top:2px">Todo lo que se pasó con fotos: lo leído, lo corregido y qué pasó en el registro (pestaña «Bitácora» del documento del sistema).</span>
-          </button>
-        </sc-if>
         <sc-if value="{{ sinRegistros }}" hint-placeholder-val="{{ false }}">
           <div style="font-size:13.5px;color:#A65543;margin-top:6px">No hay registros configurados o todavía no cargaron.</div>
         </sc-if>
@@ -631,7 +625,7 @@ class Component extends DCLogic {
     // Notas calificadas por examen y paralelo ("EX003-A"): { cargando } | { error } | { alumnos, calificadas }.
     notasEx: {},
     // Botón "Registro": enlaces a los registros en Google Sheets y si su ventana está abierta.
-    enlacesRegistro: [], enlaceSistema: "", verRegistros: false
+    enlacesRegistro: [], verRegistros: false
   };
 
   ir = (vista) => () => {
@@ -795,7 +789,7 @@ class Component extends DCLogic {
     this.setState({ cargando: true });
     // Estado y ajustes se piden por separado: si uno falla, el otro igual se muestra.
     const [est, aj] = await Promise.allSettled([this.llamar("estado"), this.llamar("ajuste")]);
-    if (est.status === "fulfilled") this.setState({ ultimo: est.value.ultimo, examenes: est.value.examenes, enlacesRegistro: est.value.registros || [], enlaceSistema: est.value.sistema || "" });
+    if (est.status === "fulfilled") this.setState({ ultimo: est.value.ultimo, examenes: est.value.examenes, enlacesRegistro: est.value.registros || [] });
     if (aj.status === "fulfilled") {
       const ajustes = { ...AJUSTES_BASE, ...(aj.value.trimestre ? { trimestre: aj.value.trimestre } : {}), ...(aj.value.profesor ? { profesor: aj.value.profesor } : {}) };
       this.setState({ ajustes, ajTrimestre: ajustes.trimestre, ajProfesor: ajustes.profesor });
@@ -1433,9 +1427,7 @@ irFotos: this.ir("fotos"), irAjustes: this.ir("ajustes"),
         nombre: (r.curso[0] === "6" ? "Sexto " : "Segundo ") + r.curso.slice(1),
         abrir: () => { window.open(r.url, "_blank", "noopener"); this.setState({ verRegistros: false }); }
       })),
-      sinRegistros: s.enlacesRegistro.length === 0,
-      hayBitacora: !!s.enlaceSistema,
-      abrirBitacora: () => { window.open(s.enlaceSistema, "_blank", "noopener"); this.setState({ verRegistros: false }); }
+      sinRegistros: s.enlacesRegistro.length === 0
     };
   }
 }

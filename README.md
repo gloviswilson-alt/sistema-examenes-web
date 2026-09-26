@@ -76,8 +76,8 @@ foto, origen (`foto`, `corregida` o `a mano`), resultado en el registro, celda y
 filas, nunca se modifican: si después se cambia una nota en el registro, la original queda aquí.
 En **Exámenes**, al abrir un examen se ve cada alumno del paralelo elegido con su nota (o "No dio examen"),
 tomada de la Bitácora.
-Si la bitácora falla, las notas igual quedan en el registro y el panel lo avisa. Se abre desde el botón
-"Registro". Las fotos no se guardan (nunca salen del celular).
+Si la bitácora falla, las notas igual quedan en el registro y el panel lo avisa. Las fotos no se guardan
+(nunca salen del celular).
 
 ## Reglas de `pasar`
 

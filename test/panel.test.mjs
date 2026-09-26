@@ -268,7 +268,6 @@ test('estado, notas (con fecha y promedio) y ajuste', async () => {
   assert.deepEqual(e.examenes.map((x) => x.id_examen), ['EX002', 'EX001']);
   assert.equal(e.ultimo.asignacion.C1, 'A');
   assert.deepEqual(e.ultimo.excluidos, ['C4']);
-  assert.equal(e.sistema, 'https://docs.google.com/spreadsheets/d/SIS/edit');
   assert.deepEqual(e.registros, [{ curso: '6B', url: 'https://docs.google.com/spreadsheets/d/REG6B/edit', copia: false }]);
 
   const n = await ops.notas({ nivel: 'Sexto', paralelo: 'B' });

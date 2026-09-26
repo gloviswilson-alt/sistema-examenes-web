@@ -161,8 +161,7 @@ export function crearOperaciones({ sheets, almacen, hojas, azar, ahora = Date.no
       // Enlaces de los registros configurados, para el botón "Registro" del panel.
       const registros = Object.entries(hojas.registros).filter(([, id]) => id)
         .map(([curso, id]) => ({ curso, url: `https://docs.google.com/spreadsheets/d/${id}/edit`, copia: !!hojas.registrosSonCopias }));
-      const sistema = `https://docs.google.com/spreadsheets/d/${SISTEMA}/edit`; // ahí está la pestaña Bitácora
-      return { ultimo: examenes[0] || null, examenes, registros, sistema };
+      return { ultimo: examenes[0] || null, examenes, registros };
     },
 
     async banco({ nivel, tema }) {
